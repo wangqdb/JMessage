@@ -1,0 +1,358 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>JMessage Web版</title>
+<link rel="stylesheet" type="text/css" href="./res/css/webim.css" />
+<link rel="stylesheet" type="text/css" href="./res/css/bootstrap.css" />
+<link rel="stylesheet" type="text/css" href="./res/css/emojify-emoticons.min.css" />
+</head>
+<body style="background-image:url('./res/img/bg/imbg003.png') ;background-attachment:fixed;background-repeat:no-repeat;background-size:cover;-moz-background-size:cover;-webkit-background-size:cover;">
+
+	<div class="container" id="loginPanel" style="width:300px;">
+        <h3 class="form-signin-heading">JMessage</h3><br/>
+        <input type="text" name="user_name" id="user_name" class="form-control" placeholder="用户名" required autofocus/>
+        <input type="password" name="password" id="password" class="form-control" placeholder="密 码" />
+        <button class="btn btn-lg btn-primary btn-block" id="login_submit">进入聊天</button>
+    </div>
+    
+    <div id="waitLoginmodal" style="display:none;margin:0 auto;width:400px;" class="container">
+		<img src="./res/img/isloading.gif"></img>
+	 </div>
+    
+	<div class="content" id="content" style="display: none">
+		<div class="leftcontact" id="leftcontact">
+			<div id="headerimg" class="leftheader">
+				<span> <img src="./res/img/head/header2.jpg" alt="logo"
+					class="img-circle" width="60px" height="60px"
+					style="margin-top: -40px; margin-left: 20px" /></span> <span
+					id="login_user" class="login_user_title"> <a
+					class="leftheader-font" href="#"></a>
+				</span> 
+				<span>
+					<div class="btn-group" style="margin-left: 20px;">
+						<button class="btn btn-inverse dropdown-toggle" data-toggle="dropdown">
+							<span class="caret"></span>
+						</button>
+						<!-- <ul class="dropdown-menu">
+							<li><a href="#" onclick="addNewFriends()">添加好友</a></li>
+							<li><a href="#" onclick="startNewChat()">发起聊天</a></li>
+							<li><a href="#" onclick="closeSound()">关闭声音</a></li>
+							<li><a href="#" onclick="adviceFeedback()">意见反馈</a></li>
+							<li class="divider"></li>
+							<li><a href="#" onclick="logout()">退出</a></li>
+						</ul> -->
+					</div>
+				</span>
+			</div>
+			<div id="leftmiddle">
+  				<ul class="nav nav-tabs nav-justified">
+					<li role="presentation" class="active"><a id="conversionTab" class="im-conversion-tab" >会话<span class="badge"></span></a></li>
+  					<li role="presentation"><a id="friendsTab" class="im-friend-tab" >好友</a></li>
+  					<li role="presentation"><a id="groupsTab" class="im-group-tab">群组</a></li>
+				</ul>
+				<!-- <ul class="nav nav-tabs nav-justified">
+  					<li role="presentation">
+  						<div class="input-group">
+					      <input type="text" class="form-control" placeholder="  搜索">
+					      <span class="input-group-btn">
+					        <button class="btn btn-default" type="button">Search!</button>
+					      </span>
+				   	</div>
+				    </li>
+				</ul> -->
+			</div>
+			<div id="conversionlist" style="height: 450px; overflow-y: auto; overflow-x: auto; background-image: url('./res/img/bg/tabbg.jpg')"></div>
+			<div id="contractlist" style="height: 450px; overflow-y: auto; overflow-x: auto;  display:none;"></div>
+			<div id="grouplist" style="height: 450px; overflow-y: auto; overflow-x: auto; display:none;"></div>
+		</div>
+	
+		<!-- 聊天页面 -->
+		<div style="height: 78px;" id="righttop"></div>
+		<div class="chatRight">
+			<!-- 群组信息显示面板  -->
+			<div id="groupInfo" class="chat01" style="display: none;">
+				<div class="chat01_title">
+					<ul class="talkTo">
+						<li style="float: left;" onclick="backToChat();"><img
+								src="./res/img/head/back.png"
+								style="margin-right: 15px; cursor: pointer; width: 18px;" title="返回" />
+						</li>
+						<li style="margin-left: 160px; font-size:16px;">群组信息</li>
+					</ul>
+				</div>
+				<div id="groupMemberInfoPanel" class="groupinfo_content">
+					<div class="input-group">
+					  <span class="input-group-addon" id="basic-addon1">群组名称</span>
+					  <input id="group_info_groupname" type="text" class="form-control" placeholder="这里显示群聊名称" aria-describedby="basic-addon1"/>
+					  <!-- <button type="button" class="btn btn-info" onclick="updateGroupName();">修改</button> -->
+					</div>
+					<div id="groupMemberInfoList" class="groupMemberInfoList">
+						<ul id="groupMemberInfoListUL">
+							<li id='addNewMember' onclick="addNewMember();"><img src="./res/img/head/add.png"/><p class="profileName">加人</p></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<!--  end of group info  -->
+			<div id="chat01" class="chat01">
+				<div class="chat01_title">
+					<ul class="talkTo">
+						<li id="talkTo"><a href="#"></a></li>
+						<!-- <li id="recycle" style="float: right;"><img
+							src="./res/img/recycle.png" onclick="clearCurrentChat();"
+							style="margin-right: 15px; cursor: hand; width: 18px;" title="清屏" /></li> -->
+						<li id="roomInfo" style="float: right; visibility: hidden"><img
+							id="roomMemberImg"
+							src="./res/img/head/group_normal22.png"
+							onclick="showGroupMembers();"
+							style="margin-right: 15px; cursor: pointer; width: 25px; height:22px; display: block;"
+							title="群组成员" /></li>
+					</ul>
+				</div>
+				<div id="null-nouser" class="chat01_content"></div>
+			</div>
+
+			<div class="chat02">
+				<div class="chat02_title">
+					<a class="chat02_title_btn ctb01" onclick="showEmotionDialog()"
+						title="选择表情"></a>
+					<a class="chat02_title_btn ctb03" title="选择图片"
+						data-toggle="modal" onclick="showChooseFileDialog()"></a> <!-- <a
+						class="chat02_title_btn ctb02" data-toggle="modal" data-target="#audioFileModal"
+						title="选择语音"><span></span></a> --> <label id="chat02_title_t"></label>
+						<div>
+							<textarea id="talkInputId" name="talkInputId" class="talkInputId"></textarea>
+							<button type="button" class="btn btn-info" onclick="sendText()">发送</button>
+						</div>
+					<div id="wl_faces_box" class="wl_faces_box">
+						 <div class="wl_faces_content">
+							<div class="title">
+								<ul>
+									<li class="title_name_simbol" style="background:#A0A0A0" onclick="changeSimbolPanel();">符号表情</li>
+									<li class="title_name_carton" onclick="changeCartonPanel();">动画表情</li>
+									<li class="wl_faces_close"><span
+										onclick='turnoffFaces_box()'>&nbsp;</span></li>
+								</ul>
+							</div>
+							<div id="wl_faces_main_simpol" class="wl_faces_main_simpol">
+								<ul id="emotionUL">
+								</ul>
+							</div>
+							<div id="wl_faces_main_carton" class="wl_faces_main_carton">
+								<ul id="carton_emotionUL">
+								</ul>
+							</div>
+						</div>
+					</div>
+					
+				</div>
+				<!-- <div id="input_content" class="chat02_content">
+					<textarea id="talkInputId" name="talkInputId" class="talkInputId"></textarea>
+				</div>
+				<div class="chat02_bar">
+					<ul>
+						<li style="right: 5px; top: 5px;"><img src="./res/img/send_btn.jpg"
+							onclick="sendText()" /></li>
+					</ul>
+				</div> -->
+			</div>
+			
+			<!-- <div id="audioFileModal" class="modal fade" tabindex="-1" role="dialog"
+				aria-hidden="true" data-backdrop="true">
+				<div class="modal-dialog">
+    				<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"
+								aria-hidden="true">&times;</button>
+							<h3>语音选择框</h3>
+						</div>
+						<div class="modal-body">
+							<input type='file' id="fileInput" /> <input type='hidden'
+								id="sendfiletype" />
+							<div id="send-file-warning"></div>
+						</div>
+						<div class="modal-footer">
+							<button id="fileSend" class="btn btn-primary" onclick="sendAudioFile();" data-dismiss="modal">发送</button>
+							<button id="cancelfileSend" class="btn" data-dismiss="modal">取消</button>
+						</div>
+					</div>
+				</div>
+			</div> -->	
+		</div>
+		
+		<div id="zoomOutPicView" class="modal fade text-center" tabindex="-1" role="dialog"
+				aria-hidden="true" data-backdrop="true">
+				<div class="modal-dialog" style="display: inline-block; width: auto;">
+					<div class="modal-content">
+						<div class="modal-body">
+							<img id="zoomOutPic" class="zoomOutPic" alt="原图效果哦" />
+						</div>
+					</div>
+				</div>
+		</div>
+		
+		<div id="picFileModal" class="modal fade" tabindex="-1" role="dialog"
+				aria-hidden="true" data-backdrop="true">
+				<div class="modal-dialog">
+    				<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"
+								aria-hidden="true">&times;</button>
+							<h3>图片选择框</h3>
+						</div>
+						<div id="fileContainer" class="modal-body">
+							<button id="fileChooseBtn" class="btn btn-primary">选择图片</button>
+						</div>
+					</div>
+				</div>
+		</div>
+		
+		<div id="addNewFriendModal" class="modal fade" tabindex="-1" role="dialog"
+				aria-hidden="true" data-backdrop="true">
+				<div class="modal-dialog">
+    				<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"
+								aria-hidden="true">&times;</button>
+							<h3>添加好友</h3>
+						</div>
+						<div class="modal-body">
+							<input type="text" name="friend_username" id="friend_username" class="form-control" placeholder="输入好友的用户名"/>
+						</div>
+						<div class="modal-footer">
+							<button id="addFriendConfirm" class="btn btn-primary" onclick="sendAddFriendCmd();" data-dismiss="modal">发送请求</button>
+							<button id="cancelfileSend" class="btn" data-dismiss="modal">取消</button>
+						</div>
+					</div>
+				</div>
+		</div>
+		
+		<div id="addGroupMemberModal" class="modal fade" tabindex="-1" role="dialog"
+				aria-hidden="true" data-backdrop="true">
+				<div class="modal-dialog">
+    				<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"
+								aria-hidden="true">&times;</button>
+							<h3>添加群成员</h3>
+						</div>
+						<div class="modal-body">
+							<input type="text" name="add_group_member_username" id="add_group_member_username" class="form-control" placeholder="输入用户名"/>
+						</div>
+						<div class="modal-footer">
+							<button id="addFriendConfirm" class="btn btn-primary" onclick="sendAddGroupMemberCmd();" data-dismiss="modal">发送请求</button>
+							<button id="cancelfileSend" class="btn" data-dismiss="modal">取消</button>
+						</div>
+					</div>
+				</div>
+		</div>
+		
+		<div id="startNewChatModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog"
+				aria-hidden="true" data-backdrop="true">
+				<div class="modal-dialog modal-sm">
+    				<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"
+								aria-hidden="true">&times;</button>
+							<h3>发起聊天</h3>
+						</div>
+						<div class="modal-body">
+							<ul class="nav nav-tabs nav-justified">
+								<li role="presentation" class="active"><a href="#" onclick="showFriendsListPanel(this);">选择联系人</a></li>
+  								<li role="presentation"><a href="#" onclick="showGroupsListPanel(this);">选择群组</a></li>
+							</ul>
+							<div class="row" style="height:200px; overflow-y:scroll;">
+  								<div id="startChatFriendsList" class="col-md-5">
+  								 	<span class="listDetail"><input type="checkbox"/> 测试用户1</span>
+									<span class="listDetail"><input type="checkbox"/> 测试用户2</span>
+									<span class="listDetail"><input type="checkbox"/> 测试用户3</span>
+									<span class="listDetail"><input type="checkbox"/> 测试用户4</span>
+									<span class="listDetail"><input type="checkbox"/> 测试用户5</span>
+									<span class="listDetail"><input type="checkbox"/> 测试用户6</span>
+  								</div>
+  								<div id="startChatGroupsList" class="col-md-5" style="display:none;">
+  								 	<span class="listDetail">测试群组1</span>
+									<span class="listDetail">测试群组2</span>
+									<span class="listDetail">测试群组3</span>
+									<span class="listDetail">测试群组4</span>
+									<span class="listDetail">测试群组5</span>
+  								</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button id="startNewChatConfirm" class="btn btn-primary" onclick="sendStartNewChatCmd();" data-dismiss="modal">确定</button>
+							<button id="cancelfileSend" class="btn" data-dismiss="modal">取消</button>
+						</div>
+					</div>
+				</div>
+		</div>
+		
+		<div id="addNewGroupMembersModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog"
+				aria-hidden="true" data-backdrop="true">
+				<div class="modal-dialog modal-sm">
+    				<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"
+								aria-hidden="true">&times;</button>
+							<h3>添加参与人</h3>
+						</div>
+						<div class="modal-body">
+							<div class="row" style="height:200px; overflow-y:scroll;">
+  								<div id="startChatFriendsList" class="col-md-5">
+  								 	<span class="listDetail"><input type="checkbox"/> 测试用户1</span>
+									<span class="listDetail"><input type="checkbox"/> 测试用户2</span>
+									<span class="listDetail"><input type="checkbox"/> 测试用户3</span>
+									<span class="listDetail"><input type="checkbox"/> 测试用户4</span>
+									<span class="listDetail"><input type="checkbox"/> 测试用户5</span>
+									<span class="listDetail"><input type="checkbox"/> 测试用户6</span>
+  								</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button id="startNewChatConfirm" class="btn btn-primary" onclick="sendStartNewChatCmd();" data-dismiss="modal">确定</button>
+							<button id="cancelfileSend" class="btn" data-dismiss="modal">取消</button>
+						</div>
+					</div>
+				</div>
+		</div>
+		
+		<div id="showGroupMemberDetailInfoModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog"
+				aria-hidden="true" data-backdrop="true">
+				<div class="modal-dialog modal-sm">
+    				<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"
+								aria-hidden="true">&times;</button>
+							<h3>详细资料</h3>
+						</div>
+						<div class="modal-body">
+							<div class="row">
+								<img class='groupMemberDetailAvator' src="./res/img/head/header2.jpg"/>
+								<input id="groupMemberDetailId" type="hidden" />
+								<p class="groupMemberDetailName"></p><br/>
+								<p class="groupMemberDetailLocation">广东 深圳</p>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button id="startNewChatConfirm" class="btn btn-primary" onclick="startNewChatWithGroupMember();" data-dismiss="modal">发起会话</button>
+						</div>
+					</div>
+				</div>
+		</div>
+
+	</div> 
+	
+	
+<script type="text/javascript" src="./res/js/jquery.js"></script>
+<script type="text/javascript" src="./res/js/bootstrap.js"></script>
+<script type="text/javascript" src="./res/js/upload.file.utils.js"></script>
+<script type="text/javascript" src="./res/js/moxie.js"></script>
+<script type="text/javascript" src="./res/js/plupload.min.js"></script>
+<script type="text/javascript" src="./res/js/qiniu.min.js"></script>
+<!-- <script type="text/javascript" src="./res/js/emojify.js"></script>  --><!-- emoji 处理 -->
+<script type="text/javascript" src="./res/js/JPushIMJsSdk.js"></script>  <!-- jpush im sdk -->
+<script type="text/javascript" src="./res/js/webim.js"></script>  <!-- im logic js -->
+
+</body>
+</html>
