@@ -371,17 +371,27 @@ var chatEventResp = function(data){
 var msgFeedBackResp = function(data){
 	var code = data.code;
 	var create_time = data.create_time;
+	var rid = data.rid;
 	if(code==0){
-		removeMsgFromQuene(create_time);
-		$('img#'+create_time).css({
+		removeMsgFromQuene(rid);
+		$('img#'+rid).css({
 			'display':'none'
 		});
-		$('img#'+create_time).attr('status', 1);
+		$('img#'+rid).attr('status', 1);
 	} else {
-		$('img#'+create_time).attr('src', './res/img/failture.png');
-		$('img#'+create_time).attr('onclick', 'resendMsg(this)');
+		$('img#'+rid).attr('src', './res/img/failture.png');
+		$('img#'+rid).attr('onclick', 'resendMsg(this)');
+		if(code==800012){
+			alert('您可能在其他终端登陆，该设备用户已下线');
+			window.location.reload();
+		} else if(code==800013){
+			alert('您当前已掉线，请重新登陆');
+			window.location.reload();
+		} else if(code==800014){
+			alert('发起的用户appkey与目标不匹配');
+		}
 	}
-	console.log('send msg status - create_time: '+create_time+', code: '+code);
+	console.log('send msg status - rid: '+rid+', code: '+code);
 };
 
 //  消息下发处理
@@ -606,7 +616,8 @@ document.onkeydown = function(event){
 		   var msg_body = {
 				   text: content
 		    };
-		   appendMsgSendByMe(create_time, content);
+		   var rid = JPushIM.getRID(); // 标示消息
+		   appendMsgSendByMe(rid, content);
 		   var create_time = ''+(new Date().getTime())/1000;
 		   create_time = create_time.split('.')[0];
 		   if(isSingleOrGroup=='single'){
@@ -616,7 +627,7 @@ document.onkeydown = function(event){
 		    	}
 			   addContractToConversionList(curChatUserId, toUserName);  //   添加该会话到会话列表
 			   updateConversionRectMsg(curChatUserId, content);
-			   var message =  JPushIM.buildMessageContent(juid, sid,"single", "text", toUserName, curChatUserId,
+			   var message =  JPushIM.buildMessageContent(juid, sid, rid, "single", "text", toUserName, curChatUserId,
 					   								uid, user_name, create_time, msg_body);
 			   JPushIM.chatEvent(message);
 			   addMsgToQuene(create_time, message);
@@ -624,7 +635,7 @@ document.onkeydown = function(event){
 			   var toGroupName = $('#'+curChatGroupId).attr('displayname');
 			   addGroupToConversionList(curChatGroupId, toGroupName);  //   添加该会话到会话列表
 			   updateConversionRectMsg(curChatGroupId, content);
-			   var message =  JPushIM.buildMessageContent(juid, sid, "group", "text", curChatGroupId, toGroupName,
+			   var message =  JPushIM.buildMessageContent(juid, sid, rid, "group", "text", curChatGroupId, toGroupName,
 							uid, user_name, create_time, msg_body);
 			   JPushIM.chatEvent(message);
 			   addMsgToQuene(create_time, message);
@@ -647,7 +658,8 @@ function sendText(){
 		  return;
 	  } 
 	 var create_time = Date.parse(new Date())/1000;
- 	 appendMsgSendByMe(create_time, content);
+	 var rid = JPushIM.getRID();  // 标示消息
+ 	 appendMsgSendByMe(rid, content);
     document.getElementById('talkInputId').value = '';
     if(isSingleOrGroup=='single'){
     	var toUserName = $('li#'+curChatUserId).attr('username');
@@ -656,7 +668,7 @@ function sendText(){
     	}
     	addContractToConversionList(curChatUserId, toUserName);  //   添加该会话到会话列表
     	updateConversionRectMsg(curChatUserId, content);
-    	var message =  JPushIM.buildMessageContent(juid, sid, "single", "text", toUserName, curChatUserId,
+    	var message =  JPushIM.buildMessageContent(juid, sid, rid, "single", "text", toUserName, curChatUserId,
 					uid, user_name, create_time, msg_body);	
     	JPushIM.chatEvent(message);
     	addMsgToQuene(create_time, message);
@@ -664,7 +676,7 @@ function sendText(){
     	var toGroupName = $('li#'+curChatGroupId).attr('displayname');
     	addGroupToConversionList(curChatGroupId, toGroupName);  //   添加该会话到会话列表
     	updateConversionRectMsg(curChatGroupId, content);
-    	var message = JPushIM.buildMessageContent(juid, sid, "group", "text", curChatGroupId, toGroupName,
+    	var message = JPushIM.buildMessageContent(juid, sid, rid, "group", "text", curChatGroupId, toGroupName,
 				uid, user_name, create_time, msg_body);
     	JPushIM.chatEvent(message);
     	addMsgToQuene(create_time, message);
@@ -1245,44 +1257,45 @@ var hideUnreadMsgMark = function(id){
 }
 
 // 显示消息发送失败标记
-var showSendMsgFailtureMark = function(create_time){
-	var status = $('img#'+create_time).attr('status');
-	console.log('msg: '+create_time+', status: '+status);
+var showSendMsgFailtureMark = function(rid){
+	var status = $('img#'+rid).attr('status');
+	console.log('msg: '+rid+', status: '+status);
 	if(status==0){
-		$('img#'+create_time).attr('src', './res/img/failture.png');
-		$('img#'+create_time).attr('onclick', 'resendMsg(this)');
+		$('img#'+rid).attr('src', './res/img/failture.png');
+		$('img#'+rid).attr('onclick', 'resendMsg(this)');
 	}
 }
 
 var resendMsg = function(dom){  //  消息重发函数
-	var create_time = $(dom).attr('id');
-	var message = JPushIM.MsgQuene.create_time;
+	var rid = $(dom).attr('id');
+	var message = JPushIM.MsgQuene.rid;
 	if(message==''||message==undefined){
 		console.log('not found message content, creat_time: '+create_time);
 	}
-	$('img#'+create_time).attr('src', './res/img/issending.gif');
+	$('img#'+rid).attr('src', './res/img/issending.gif');
 	JPushIM.chatEvent(message);
-	listenSendMsgTimeOut(create_time);
+	listenSendMsgTimeOut(rid);
 }
 
 // 添加消息到消息队列
-var addMsgToQuene = function(create_time, message){
-	JPushIM.MsgQuene.create_time = message;
+var addMsgToQuene = function(rid, message){
+	JPushIM.MsgQuene.rid = message;
 }
 
 // 从消息队列中移除发送成功的消息
-var removeMsgFromQuene = function(create_time){
-	delete JPushIM.MsgQuene.create_time;
+var removeMsgFromQuene = function(rid){
+	delete JPushIM.MsgQuene.rid;
 }
 
 // 消息发送超时处理
-var listenSendMsgTimeOut = function(create_time){
-	window.setTimeout('showSendMsgFailtureMark('+create_time+')', 6000);
+var listenSendMsgTimeOut = function(rid){
+	console.log('setTimeOut: '+rid);
+	window.setTimeout('showSendMsgFailtureMark('+rid+')', 6000);
 }
 
 //  添加自己发送的聊天信息到显示面板
-var appendMsgSendByMe = function(create_time, message) {
-	listenSendMsgTimeOut(create_time);
+var appendMsgSendByMe = function(rid, message) {
+	listenSendMsgTimeOut(rid);
 	var date = new Date();
 	var time = date.toLocaleTimeString();
 	var headstr = [ "<p1> 我 <span></span>" + "   </p1>",
@@ -1298,7 +1311,7 @@ var appendMsgSendByMe = function(create_time, message) {
 		lineDiv.appendChild(ele);
 	}
 	
-	var eletext = "<img src='./res/img/issending.gif' status=0 id="+create_time+"><p3 id="+create_time+">" + message + "</p3>";
+	var eletext = "<img src='./res/img/issending.gif' status=0 id="+rid+"><p3 id="+rid+">" + message + "</p3>";
 	
 	var ele = $(eletext);
 	ele[1].setAttribute("class", "chat-content-p3");
@@ -1331,7 +1344,6 @@ var appendMsgSendByMe = function(create_time, message) {
 		document.getElementById(msgCardDivId).appendChild(msgContentDiv);
 	}
 	msgContentDiv.scrollTop = msgContentDiv.scrollHeight;
-	//emojify.run();
 	return lineDiv;
 }; 
 

@@ -7071,9 +7071,7 @@
         return emojify;
     }
 ));
-/*---- 加载资源文件 -----*/
-
-/*----------------------*/
+/*---  JMessage Define  -----*/
 
 var empFn = function(){};
 
@@ -7086,12 +7084,18 @@ JPushIM = (function() {
 		var JPushIM = {};
 	   JPushIM.url = 'http://127.0.0.1:9092';
 		//JPushIM.url = 'http://webchatserver.im.jpush.cn:9092';
-		//JPushIM.url = 'http://183.232.29.221:9092';
 	   JPushIM.QiNiuMediaUrl = 'http://jpushim.qiniudn.com/';  //  media storage
 	   JPushIM.UpYunVoiceMediaUrl = 'http://cvoice.b0.upaiyun.com/';
 	   
 	   JPushIM.MsgSequence = 0; // 消息计数器
 	   JPushIM.MsgQuene = {};   // 消息队列，保存未发送成功的消息
+	   JPushIM.getRID = function(){  // 生成sid
+		   var num="";
+		   for(var i=0; i<6; i++){
+			   num+=Math.floor(Math.random()*9 + 1);
+		   	}
+		   return num;
+	   };
 	   
 	   JPushIM.connect = function() {
 		   if(window.WebSocket){  // 根据浏览器的支持情况选择连接方式
@@ -7166,42 +7170,61 @@ JPushIM = (function() {
 		  this.socket.on('IMException', options.onIMException || IMDefaultExceptionTrack);
 	   };
 	    
-	   //  JPushIM 异常信息定义
-		/*JPushIM.Exception = {
-				'APPKEY_SECRECT_EXCEPTION' : 8001
-		};*/
+	   //  JPushIM Code定义
+		JPushIM.Exception = {
+				'USERNAME_UNEXIST' : 801003,
+				'USERNAME_PASSWORD_WRONG' : 801004,
+				'USERNAME_WRONG' : 802002,
+				'GROUPMEMBER_UNEXIST' : 810005,
+				'USER_ALREADY_IN_GROUP' : 810007,
+				'APPKEY_INVALID' : 872001,
+				'USERNAME_NOT_REGISTER' : 872002,
+				'PASSWORD_WRONG' : 872003,
+				'APPKEY_USERNAME_NOT_FIT' : 872004,
+				'SEND_MSG_FAILTURE' : 872005,
+				'ADD_GROUP_MEMBER_FAILTURE' : 872006,
+				'DEL_GROUP_MEMBER_FAILTURE' : 872007
+		};
 		//   JPushIM 异常处理
 		var IMDefaultExceptionTrack = function(code){
 		   switch(code){
-		   	case 801004:
+		   	case JPushIM.Exception.USERNAME_UNEXIST:
+		   		alert('用户名不存在');
+		   		location.reload();
+		   		break;
+		   	case JPushIM.Exception.USERNAME_PASSWORD_WRONG:
 		   		alert('密码与用户名不匹配');
 		   		location.reload();
 		   		break;
-		   	case 810005:
+		   	case JPushIM.Exception.USERNAME_WRONG:
+		   		alert('用户名错误');
+		   		location.reload();
+		   		break;
+		   	case JPushIM.Exception.GROUPMEMBER_UNEXIST:
 		   		alert('添加到群组的成员不存在');
 		   		break;
-		   	case 810007:
+		   	case JPushIM.Exception.USER_ALREADY_IN_GROUP:
 		   		alert('该用户已是群成员');
 		   		break;
-		   	case 872001:
+		   	case JPushIM.Exception.APPKEY_INVALID:
 		  			alert('AppKey无效'); // push
 		  			break;
-		   	case 872002:
+		   	case JPushIM.Exception.USERNAME_NOT_REGISTER:
 		   		alert('用户名未注册'); // im login 1
 		   		break;
-		   	case 872003:
+		   	case JPushIM.Exception.PASSWORD_WRONG:
 		   		alert('密码错误');  //  im login 2
 		   		break;
-		   	case 872004:
+		   	case JPushIM.Exception.APPKEY_USERNAME_NOT_FIT:
 		   		alert('AppKey与用户名不匹配');  // im login 3
 		   		break;
-		   	case 872005:
+		   	case JPushIM.Exception.SEND_MSG_FAILTURE:
 		   		alert('发送消息失败');  // im msg 
 		   		break;
-		   	case 872006:
+		   	case JPushIM.Exception.ADD_GROUP_MEMBER_FAILTURE:
 		   		alert('添加群组成员失败');  // im add group member
 		   		break;
-		   	case 872007:
+		   	case JPushIM.Exception.DEL_GROUP_MEMBER_FAILTURE:
 		   		alert('删除群组成员失败');  // im rm group member 
 		   		break;
 		   	default:
@@ -7454,11 +7477,12 @@ JPushIM = (function() {
 		//  end of define jpush im emoji data
 		  
 	    //  消息内容封包
-	   JPushIM.buildMessageContent = function(juid, sid, target_type, msg_type,target_id, target_name,
+	   JPushIM.buildMessageContent = function(juid, sid, rid, target_type, msg_type,target_id, target_name,
 	    														from_id, from_name, create_time, content){
 		   msgContent.appKey = this.appKey;
 		   msgContent.juid = juid || "";
 	    	msgContent.sid = sid || "";
+	    	msgContent.rid = rid || "";
 		   msgContent.target_type = target_type || "";
 	    	msgContent.target_id = target_id || "";
 	    	msgContent.target_name = target_name || "";
