@@ -199,16 +199,17 @@ var getUploadPicMetaInfoResp = function(data){
 	imageContent.width = data.width;
 	imageContent.media_crc32 = data.crc32;
 	var toUserName = $('#'+curChatUserId).attr('username');
+	var rid = JPushIM.getRID(); // 标示消息
 	var create_time = Date.parse(new Date())/1000;
 	$('#picFileModal').modal('hide');
 	appendPicMsgSendByMe(create_time, "<img onclick='zoomOut(this)' src="+ mediaResourceSrc +" width='100px;' height='70px;' style='cursor:pointer'></img>");
 	if(isSingleOrGroup=='single'){
-  		var message =  JPushIM.buildMessageContent(juid, sid,"single", "image", toUserName, curChatUserId,
+  		var message =  JPushIM.buildMessageContent(juid, sid, rid, "single", "image", toUserName, curChatUserId,
 					uid, user_name, create_time, imageContent);
   		JPushIM.chatEvent(message);
   		addMsgToQuene(create_time, message);
   	} else if(isSingleOrGroup=='group'){
-  		var message =  JPushIM.buildMessageContent(juid, sid, "group", "image", curChatGroupId, curChatGroupId,
+  		var message =  JPushIM.buildMessageContent(juid, sid, rid, "group", "image", curChatGroupId, curChatGroupId,
 				uid, user_name, create_time, imageContent);
   		JPushIM.chatEvent(message);
   		addMsgToQuene(create_time, message);
@@ -1085,7 +1086,13 @@ var appendMsgSendByOthers = function(name, message, create_time, contact, chatty
 			var mediaId = messageObject.media_id;
 			//var width = messageObject.width;
 			//var height = messageObject.height;
-			var path = JPushIM.QiNiuMediaUrl + mediaId + '?imageView2/2/h/100';
+			var path = '';
+			var mediaStrs = mediaId.split('/');
+			if('qiniu'==mediaStrs[0]){
+				path = JPushIM.QiNiuMediaUrl + mediaId + '?imageView2/2/h/100';
+			} else if('upyun'==mediaStrs[0]){
+				path = JPushIM.UpYunImageMediaUrl + mediaId;
+			}
 			message = "<img onclick='zoomOut(this)' src="+path+" width='100px;' height='70px;' style='cursor:pointer'></img>";
 			var eletext = "<p3 >" + message + "</p3>";
 			ele = $(eletext);
@@ -1181,7 +1188,13 @@ var appendMsgSendByOthers = function(name, message, create_time, contact, chatty
 			updateConversionRectMsg(contactDivId, content);  //  更新会话列表中最新的消息
 		} else if('image'==contentType){
 			var mediaId = jQuery.parseJSON(message).media_id;
-			var path = JPushIM.QiNiuMediaUrl + mediaId + '?imageView2/2/h/100';
+			var path = '';
+			var mediaStrs = mediaId.split('/');
+			if('qiniu'==mediaStrs[0]){
+				path = JPushIM.QiNiuMediaUrl + mediaId + '?imageView2/2/h/100';
+			} else if('upyun'==mediaStrs[0]){
+				path = JPushIM.UpYunImageMediaUrl + mediaId;
+			}
 			message = "<img onclick='zoomOut(this)' src="+path+" width='100px;' height='70px;' style='cursor:pointer'></img>";
 			var eletext = "<p3 >" + message + "</p3>";
 			ele = $(eletext);
@@ -1377,10 +1390,10 @@ var appendPicMsgSendByMe = function(create_time, message) {
 	var msgContentDiv;
 	if(isSingleOrGroup=='single'){
 		msgContentDiv = getContactChatDiv(curChatUserId); 
-		updateConversionRectMsg(curChatUserId, "图片文件");
+		updateConversionRectMsg(curChatUserId, "【图片文件】");
 	} else if(isSingleOrGroup=='group'){
 		msgContentDiv = getGroupChatDiv(curChatGroupId); 
-		updateConversionRectMsg(curChatGroupId, "图片文件");
+		updateConversionRectMsg(curChatGroupId, "【图片文件】");
 	}
 	lineDiv.style.textAlign = "right";
 	

@@ -7084,9 +7084,10 @@ JPushIM = (function() {
 		var JPushIM = {};
 	   JPushIM.url = 'http://127.0.0.1:9092';
 		//JPushIM.url = 'http://webchatserver.im.jpush.cn:9092';
-	   JPushIM.QiNiuMediaUrl = 'http://jpushim.qiniudn.com/';  //  media storage
+	   JPushIM.QiNiuMediaUrl = 'http://jpushim.qiniudn.com/';  // media file storage
 	   JPushIM.UpYunVoiceMediaUrl = 'http://cvoice.b0.upaiyun.com/';
-	   
+	   JPushIM.UpYunImageMediaUrl = 'http://cimage.b0.upaiyun.com/'; // http://cimage.b0.upaiyun.com/upyun/image/8F749B2597A5D412
+	  
 	   JPushIM.MsgSequence = 0; // 消息计数器
 	   JPushIM.MsgQuene = {};   // 消息队列，保存未发送成功的消息
 	   JPushIM.getRID = function(){  // 生成sid
