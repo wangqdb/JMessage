@@ -17,10 +17,6 @@ var checkAppKey = function(){
 };
 
 //  自己的业务需要添加的变量
-var uid = null;
-var juid = null;
-var sid = null;
-var curUserId = null;  //  当前用户id
 var curChatUserId = null;  //  当前聊天对象id
 var curChatGroupId = null;  // 当前聊天Group id
 var curChatUserSessionId  = null;  // connection sessionId
@@ -44,10 +40,10 @@ var imageContent = {
 }; 
 
 //   建立连接
-JPushIM.connect();
+JMessage.connect();
 
 //初始化IM业务配置
-JPushIM.init({
+JMessage.init({
 	appKey : APPKEY,
 	//appKey : 'ab5e82b23ee58621a01de671',
 	//appKey : '4f7aef34fb361292c566a1cd',
@@ -55,11 +51,11 @@ JPushIM.init({
 	onConnect : function(){
 		connectResp();
 	},
-	onLoginGetSJ : function(data){
+	/*onLoginGetSJ : function(data){
 		loginGetSJResp(data);
-	},
-	onLoginGetUID : function(data){
-		loginGetUIDResp(data);
+	},*/
+	onLoginEvent : function(data){
+		loginEventResp(data);
 	},
 	onBindSocketIoClientEvent : function(data){
 		bindSocketIoClientEventResp(data);
@@ -122,31 +118,30 @@ var connectResp = function(){
 };
 
 //  登陆响应处理SID ,JUID
-var loginGetSJResp = function(data){
+/*var loginGetSJResp = function(data){
 	console.log('处理登陆响应SJ！');
 	if(data!=null){
-		sid = data.sid;
-		juid = data.juid;
+		JMessage.ClientInfo.sid = data.sid;
+		JMessage.ClientInfo.juid = data.juid;
 	} else {
 		console.log('登陆响应SJ异常');
 	}
-};
+};*/
 
 //  登陆响应处理UID
-var loginGetUIDResp = function(data){
+var loginEventResp = function(data){
 	console.log('处理登陆响应UID！');
 	if(data!=null){
-		uid = data;
-		curUserId = uid;
+		JMessage.ClientInfo.uid = data;
 	} else {
 		$('#waitLoginmodal').css({"display":"none"});
 		alert('登陆失败，可能您的帐号不对.');
 		location.reload(); 
 		return;
 	}
-	JPushIM.bindSocketIoClientEvent({
+	JMessage.bindSocketIoClientEvent({
 		user_name : user_name,
-		uid: uid
+		uid: JMessage.ClientInfo.uid
 	});
 };
 
@@ -154,11 +149,10 @@ var loginGetUIDResp = function(data){
 var bindSocketIoClientEventResp = function(data){
 	createConversionlistUL();  //  创建会话列表
 	var options = {
-			'userName' : user_name,
-			'uid' : uid
+			'userName' : user_name
 	};
-	JPushIM.getContracterListEvent(options);
-	JPushIM.getGroupListEvent(options);
+	JMessage.getContracterListEvent(options);  // 目前无好友模式，该接口测试使用
+	JMessage.getGroupListEvent(options);
 	$("body").eq(0).css({
 		"background-image":"url('./res/img/bg/imbg003.png')",
 		"background-attachment":"fixed",
@@ -186,8 +180,8 @@ var uploadProgressFunc = function(progress){
 
 var uploadCompleteFunc = function(mediaId){
 	imageContent.media_id = mediaId;
-	mediaResourceSrc = JPushIM.QiNiuMediaUrl + "/" + mediaId + '?imageView2/2/h/100';
-  	JPushIM.getUploadPicMetaInfo(JPushIM.QiNiuMediaUrl + "/" + mediaId);
+	mediaResourceSrc = JMessage.QiNiuMediaUrl + "/" + mediaId + '?imageView2/2/h/100';
+  	JMessage.getUploadPicMetaInfo(JMessage.QiNiuMediaUrl + "/" + mediaId);
 };
 //  end 上传多媒体文件处理
 
@@ -195,7 +189,7 @@ var uploadCompleteFunc = function(mediaId){
 var getUploadTokenResp = function(data){
 	$('#picFileModal').modal('show');
 	uploadToken = data;
-	JPushIM.uploadMediaFile(uid, uploadToken, 'fileContainer', 'fileChooseBtn', /*filesAddedFunc,*/ uploadProgressFunc, uploadCompleteFunc);
+	JMessage.uploadMediaFile(JMessage.ClientInfo.uid, uploadToken, 'fileContainer', 'fileChooseBtn', /*filesAddedFunc,*/ uploadProgressFunc, uploadCompleteFunc);
 };
 
 //  获取上传的图片的元信息
@@ -205,19 +199,19 @@ var getUploadPicMetaInfoResp = function(data){
 	imageContent.width = data.width;
 	imageContent.media_crc32 = data.crc32;
 	var toUserName = $('#'+curChatUserId).attr('username');
-	var rid = JPushIM.getRID(); // 标示消息
+	var rid = JMessage.getRID(); // 标示消息
 	var create_time = Date.parse(new Date())/1000;
 	$('#picFileModal').modal('hide');
 	appendPicMsgSendByMe(create_time, "<img onclick='zoomOut(this)' src="+ mediaResourceSrc +" width='100px;' height='70px;' style='cursor:pointer'></img>");
 	if(isSingleOrGroup=='single'){
-  		var message =  JPushIM.buildMessageContent(juid, sid, rid, "single", "image", toUserName, curChatUserId,
-					uid, user_name, create_time, imageContent);
-  		JPushIM.chatEvent(message);
+  		var message =  JMessage.buildMessageContent(JMessage.ClientInfo.juid, JMessage.ClientInfo.sid, rid, "single", "image", toUserName, curChatUserId,
+  				JMessage.ClientInfo.uid, user_name, create_time, imageContent);
+  		JMessage.chatEvent(message);
   		addMsgToQuene(create_time, message);
   	} else if(isSingleOrGroup=='group'){
-  		var message =  JPushIM.buildMessageContent(juid, sid, rid, "group", "image", curChatGroupId, curChatGroupId,
-				uid, user_name, create_time, imageContent);
-  		JPushIM.chatEvent(message);
+  		var message =  JMessage.buildMessageContent(JMessage.ClientInfo.juid, JMessage.ClientInfo.sid, rid, "group", "image", curChatGroupId, curChatGroupId,
+  				JMessage.ClientInfo.uid, user_name, create_time, imageContent);
+  		JMessage.chatEvent(message);
   		addMsgToQuene(create_time, message);
   	}
 };
@@ -351,10 +345,7 @@ var hideDelMemMark = function(dom){
 //  删除群成员
 var delGroupMember = function(dom){
 	var toUid = $(dom).attr('id');
-	JPushIM.delGroupMemberEvent({
-		sid: sid,
-		juid: juid,
-		uid: uid,
+	JMessage.delGroupMemberEvent({
 		toUid: toUid, 
 		gid: curChatGroupId,
 		member_count: 1,
@@ -365,10 +356,7 @@ var delGroupMember = function(dom){
 var chatEventResp = function(data){
 	updateAddUnreadMsgInfo();
 	appendMsgSendByOthers(data.userName, data.message, data.create_time, data.toUserName, data.msgType, data.contentType, data.uid);
-	JPushIM.chatMsgSyncResp({
-		uid : curUserId,
-		juid : juid,
-		sid : sid,
+	JMessage.chatMsgSyncResp({
 		messageId : data.messageId,
 		iMsgType : data.iMsgType,
 		from_uid : data.from_uid,
@@ -407,7 +395,7 @@ var msgFeedBackResp = function(data){
 /*var msgSyncResp = function(data){
 	updateAddUnreadMsgInfo();
 	appendMsgSendByOthers(data.userName, data.message, data.create_time, data.toUserName, data.msgType, data.contentType, data.uid);
-	JPushIM.chatMsgSyncResp({
+	JMessage.chatMsgSyncResp({
 		uid : curUserId,
 		juid : juid,
 		sid : sid,
@@ -482,10 +470,7 @@ var eventNotificationResp = function(data){
 	var eventType = data.eventType;
 	var from_uid = data.from_uid;
 	var gid = data.gid;
-	JPushIM.eventSyncResp({
-		uid : curUserId,
-		juid : juid,
-		sid : sid,
+	JMessage.eventSyncResp({
 		eventId : eventId,
 		eventType : eventType,
 		from_uid : from_uid,
@@ -571,17 +556,17 @@ $('#login_submit').click(function(){
 	document.body.style.backgroundColor = '#FFFFFF';
 	$('#waitLoginmodal').css({"display":"block"}); 
 	var options = {
-			'appKey' : JPushIM.init.appKey,
+			'appKey' : JMessage.init.appKey,
 			'userName' : user_name,
 			'password' : password
 	};
-	JPushIM.sendLoginEvent(options);
+	JMessage.sendLoginEvent(options);
 });
 
 
 var showChooseFileDialog = function(){
 	//  获取图片上传token
-	JPushIM.getUploadTokenEvent();
+	JMessage.getUploadTokenEvent();
 }
 
 	
@@ -670,7 +655,7 @@ document.onkeydown = function(event){
 		   var msg_body = {
 				   text: content
 		    };
-		   var rid = JPushIM.getRID(); // 标示消息
+		   var rid = JMessage.getRID(); // 标示消息
 		   appendMsgSendByMe(rid, content);
 		   var create_time = ''+(new Date().getTime())/1000;
 		   create_time = create_time.split('.')[0];
@@ -681,17 +666,17 @@ document.onkeydown = function(event){
 		    	}
 			   addContractToConversionList(curChatUserId, toUserName);  //   添加该会话到会话列表
 			   updateConversionRectMsg(curChatUserId, content);
-			   var message =  JPushIM.buildMessageContent(juid, sid, rid, "single", "text", toUserName, curChatUserId,
-					   								uid, user_name, create_time, msg_body);
-			   JPushIM.chatEvent(message);
+			   var message =  JMessage.buildMessageContent(JMessage.ClientInfo.juid, JMessage.ClientInfo.sid, rid, "single", "text", toUserName, curChatUserId,
+					   JMessage.ClientInfo.uid, user_name, create_time, msg_body);
+			   JMessage.chatEvent(message);
 			   addMsgToQuene(create_time, message);
 		   } else if(isSingleOrGroup=='group'){
 			   var toGroupName = $('#'+curChatGroupId).attr('displayname');
 			   addGroupToConversionList(curChatGroupId, toGroupName);  //   添加该会话到会话列表
 			   updateConversionRectMsg(curChatGroupId, content);
-			   var message =  JPushIM.buildMessageContent(juid, sid, rid, "group", "text", curChatGroupId, toGroupName,
-							uid, user_name, create_time, msg_body);
-			   JPushIM.chatEvent(message);
+			   var message =  JMessage.buildMessageContent(JMessage.ClientInfo.juid, JMessage.ClientInfo.sid, rid, "group", "text", curChatGroupId, toGroupName,
+					   JMessage.ClientInfo.uid, user_name, create_time, msg_body);
+			   JMessage.chatEvent(message);
 			   addMsgToQuene(create_time, message);
 		    } 
 	   } else {
@@ -712,7 +697,7 @@ function sendText(){
 		  return;
 	  } 
 	 var create_time = Date.parse(new Date())/1000;
-	 var rid = JPushIM.getRID();  // 标示消息
+	 var rid = JMessage.getRID();  // 标示消息
  	 appendMsgSendByMe(rid, content);
     document.getElementById('talkInputId').value = '';
     if(isSingleOrGroup=='single'){
@@ -722,17 +707,17 @@ function sendText(){
     	}
     	addContractToConversionList(curChatUserId, toUserName);  //   添加该会话到会话列表
     	updateConversionRectMsg(curChatUserId, content);
-    	var message =  JPushIM.buildMessageContent(juid, sid, rid, "single", "text", toUserName, curChatUserId,
-					uid, user_name, create_time, msg_body);	
-    	JPushIM.chatEvent(message);
+    	var message =  JMessage.buildMessageContent(JMessage.ClientInfo.juid, JMessage.ClientInfo.sid, rid, "single", "text", toUserName, curChatUserId,
+    			JMessage.ClientInfo.uid, user_name, create_time, msg_body);	
+    	JMessage.chatEvent(message);
     	addMsgToQuene(create_time, message);
     } else if(isSingleOrGroup=='group'){
     	var toGroupName = $('li#'+curChatGroupId).attr('displayname');
     	addGroupToConversionList(curChatGroupId, toGroupName);  //   添加该会话到会话列表
     	updateConversionRectMsg(curChatGroupId, content);
-    	var message = JPushIM.buildMessageContent(juid, sid, rid, "group", "text", curChatGroupId, toGroupName,
-				uid, user_name, create_time, msg_body);
-    	JPushIM.chatEvent(message);
+    	var message = JMessage.buildMessageContent(JMessage.ClientInfo.juid, JMessage.ClientInfo.sid, rid, "group", "text", curChatGroupId, toGroupName,
+    			JMessage.ClientInfo.uid, user_name, create_time, msg_body);
+    	JMessage.chatEvent(message);
     	addMsgToQuene(create_time, message);
      } 
 };
@@ -851,17 +836,17 @@ var updateConversionRectMsg = function(id, msg){
 
 //  获取当前聊天记录的窗口div
 var getContactChatDiv = function(chatUserId) {
-	return document.getElementById(curUserId + "-" + chatUserId);
+	return document.getElementById(JMessage.ClientInfo.uid + "-" + chatUserId);
 };
 
 //  获取当前群组聊天记录的窗口
 var getGroupChatDiv = function(chatGroupId) {
-	return document.getElementById(curUserId + "-" + chatGroupId);
+	return document.getElementById(JMessage.ClientInfo.uid + "-" + chatGroupId);
 };
 	
 //  创建一个联系人聊天窗口
 var createContactChatDiv = function(chatUserId) {
-	var msgContentDivId = curUserId + "-" + chatUserId;
+	var msgContentDivId = JMessage.ClientInfo.uid + "-" + chatUserId;
 	var newContent = document.createElement("div");
 	newContent.setAttribute("id", msgContentDivId);
 	newContent.setAttribute("class", "chat01_content");
@@ -872,7 +857,7 @@ var createContactChatDiv = function(chatUserId) {
 
 //  创建一个群组聊天窗口
 var createGroupChatDiv = function(chatGroupId) {
-	var msgContentDivId = curUserId + "-" + chatGroupId;
+	var msgContentDivId = JMessage.ClientInfo.uid + "-" + chatGroupId;
 	var newContent = document.createElement("div");
 	newContent.setAttribute("id", msgContentDivId);
 	newContent.setAttribute("class", "chat01_content");
@@ -1142,9 +1127,9 @@ var appendMsgSendByOthers = function(name, message, create_time, contact, chatty
 			var path = '';
 			var mediaStrs = mediaId.split('/');
 			if('qiniu'==mediaStrs[0]){
-				path = JPushIM.QiNiuMediaUrl + mediaId + '?imageView2/2/h/100';
+				path = JMessage.QiNiuMediaUrl + mediaId + '?imageView2/2/h/100';
 			} else if('upyun'==mediaStrs[0]){
-				path = JPushIM.UpYunImageMediaUrl + mediaId;
+				path = JMessage.UpYunImageMediaUrl + mediaId;
 			}
 			message = "<img onclick='zoomOut(this)' src="+path+" width='100px;' height='70px;' style='cursor:pointer'></img>";
 			var eletext = "<p3 >" + message + "</p3>";
@@ -1160,9 +1145,9 @@ var appendMsgSendByOthers = function(name, message, create_time, contact, chatty
 			var mediaIds = mediaId.split('/');
 			var path = "";
 			if('qiniu'==mediaIds[0]){
-				path = JPushIM.QiNiuMediaUrl + mediaId +'.mp3';
+				path = JMessage.QiNiuMediaUrl + mediaId +'.mp3';
 			} else if('upyun'==mediaIds[0]){
-				path = JPushIM.UpYunVoiceMediaUrl + mediaId;
+				path = JMessage.UpYunVoiceMediaUrl + mediaId;
 			}
 			message = "<audio src=" + path +" controls='controls' width='40px' height='20px'>"+
 							+	"Your browser does not support the audio element."+
@@ -1244,9 +1229,9 @@ var appendMsgSendByOthers = function(name, message, create_time, contact, chatty
 			var path = '';
 			var mediaStrs = mediaId.split('/');
 			if('qiniu'==mediaStrs[0]){
-				path = JPushIM.QiNiuMediaUrl + mediaId + '?imageView2/2/h/100';
+				path = JMessage.QiNiuMediaUrl + mediaId + '?imageView2/2/h/100';
 			} else if('upyun'==mediaStrs[0]){
-				path = JPushIM.UpYunImageMediaUrl + mediaId;
+				path = JMessage.UpYunImageMediaUrl + mediaId;
 			}
 			message = "<img onclick='zoomOut(this)' src="+path+" width='100px;' height='70px;' style='cursor:pointer'></img>";
 			var eletext = "<p3 >" + message + "</p3>";
@@ -1262,9 +1247,9 @@ var appendMsgSendByOthers = function(name, message, create_time, contact, chatty
 			var mediaIds = mediaId.split('/');
 			var path = "";
 			if('qiniu'==mediaIds[0]){
-				path = JPushIM.QiNiuMediaUrl + mediaId + '.mp3';
+				path = JMessage.QiNiuMediaUrl + mediaId + '.mp3';
 			} else if('upyun'==mediaIds[0]){
-				path = JPushIM.UpYunVoiceMediaUrl + mediaId;
+				path = JMessage.UpYunVoiceMediaUrl + mediaId;
 			}
 			message = "<audio src=" + path +" controls='controls' width='40px' height='20px'>"+
 							+	"Your browser does not support the audio element."+
@@ -1334,23 +1319,23 @@ var showSendMsgFailtureMark = function(rid){
 
 var resendMsg = function(dom){  //  消息重发函数
 	var rid = $(dom).attr('id');
-	var message = JPushIM.MsgQuene.rid;
+	var message = JMessage.MsgQuene.rid;
 	if(message==''||message==undefined){
 		console.log('not found message content, creat_time: '+create_time);
 	}
 	$('img#'+rid).attr('src', './res/img/issending.gif');
-	JPushIM.chatEvent(message);
+	JMessage.chatEvent(message);
 	listenSendMsgTimeOut(rid);
 }
 
 // 添加消息到消息队列
 var addMsgToQuene = function(rid, message){
-	JPushIM.MsgQuene.rid = message;
+	JMessage.MsgQuene.rid = message;
 }
 
 // 从消息队列中移除发送成功的消息
 var removeMsgFromQuene = function(rid){
-	delete JPushIM.MsgQuene.rid;
+	delete JMessage.MsgQuene.rid;
 }
 
 // 消息发送超时处理
@@ -1495,8 +1480,8 @@ var selectEmotionImg = function(selImg) {
 };
 
 //  初始化 emoji 和 动画表情面板 
-JPushIM.initEmojiPanelOne('#emotionUL');
-JPushIM.initEmojiPanelTwo('#carton_emotionUL');
+JMessage.initEmojiPanelOne('#emotionUL');
+JMessage.initEmojiPanelTwo('#carton_emotionUL');
 
 //  清理当前聊天窗口
 var clearCurrentChat = function(){
@@ -1520,8 +1505,7 @@ var zoomOut = function(obj){
 //  查看群成员,显示群成员面板
 var showGroupMembers = function(){
 	//  拉取群成员信息
-	JPushIM.getGroupMemberListEvent({
-		uid: uid,
+	JMessage.getGroupMemberListEvent({
 		gid: curChatGroupId
 	});
 	var group_name = $('#'+curChatGroupId).attr('displayname');
@@ -1543,14 +1527,11 @@ var backToChat = function(){
 var updateGroupName = function(){
 	var group_name = $('#group_info_groupname').val();
 	var options = {
-			sid : sid,
-			juid : juid,
-			uid : uid,
 			user_name : user_name,
 			gid : curChatGroupId,
 			group_name : group_name
 	};
-	JPushIM.updateGroupNameEvent(options);
+	JMessage.updateGroupNameEvent(options);
 };
 
 //  添加好友
@@ -1561,32 +1542,29 @@ var addNewFriends = function(){
 //  发送添加好友请求
 var sendAddFriendCmd = function(){
 	var friend_name = $('#friend_username').val();
-	JPushIM.addFriendCmd({'from':curUserId, 'to':friend_name});
+	JMessage.addFriendCmd({'from':JMessage.ClientInfo.uid, 'to':friend_name});
 };
 
 //  发送添加群成员请求
 var sendAddGroupMemberCmd = function(){
 	var username_list = $('#add_group_member_username').val();
 	var options = {
-		sid : sid,
-		juid : juid,
-		uid : uid,
 		gid : curChatGroupId,
 		member_count : 1,
 		username : username_list
 	};
-	JPushIM.addGroupMemberEvent(options);
+	JMessage.addGroupMemberEvent(options);
 };
 
 //  用户退出
 var logout = function(){
 	var options = {
-			sid : sid,
-			juid : juid,
-			uid : uid,
-			user_name : user_name
+		sid : JMessage.ClientInfo.sid,
+		juid : JMessage.ClientInfo.juid,
+		uid : JMessage.ClientInfo.uid,
+		user_name : user_name
 	};
-	JPushIM.logoutEvent(options);
+	JMessage.logoutEvent(options);
 	window.location.reload();
 };
 
@@ -1609,13 +1587,13 @@ var createGroup = function(){
 	var group_name = $('#group_name').val();
 	var group_desc = $('#group_desc').val();
 	var options = {
-			sid : sid,
-			juid : juid,
-			uid : uid,
+			sid : JMessage.ClientInfo.sid,
+			juid : JMessage.ClientInfo.juid,
+			uid : JMessage.ClientInfo.uid,
 			group_name : group_name,
 			group_desc : group_desc
 	};
-	JPushIM.createGroupCmd(options);
+	JMessage.createGroupCmd(options);
 };
 
 //  添加群组新成员
@@ -1626,12 +1604,12 @@ var addNewMember = function(){
 //  主动退出群
 var exitGroup = function(){
 	var options = {
-		sid : sid,
-		juid : juid,
-		uid : uid,
+		sid : JMessage.ClientInfo.sid,
+		juid : JMessage.ClientInfo.juid,
+		uid : JMessage.ClientInfo.uid,
 		gid : curChatGroupId
 	};
-	JPushIM.exitGroupCmd(options);
+	JMessage.exitGroupCmd(options);
 };
 
 //  显示群成员信息
