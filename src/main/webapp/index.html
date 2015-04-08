@@ -34,14 +34,15 @@
 						<button class="btn btn-inverse dropdown-toggle" data-toggle="dropdown">
 							<span class="caret"></span>
 						</button>
-						<!-- <ul class="dropdown-menu">
-							<li><a href="#" onclick="addNewFriends()">添加好友</a></li>
+						<ul class="dropdown-menu">
+							<!-- <li><a href="#" onclick="addNewFriends()">添加好友</a></li>
 							<li><a href="#" onclick="startNewChat()">发起聊天</a></li>
 							<li><a href="#" onclick="closeSound()">关闭声音</a></li>
-							<li><a href="#" onclick="adviceFeedback()">意见反馈</a></li>
+							<li><a href="#" onclick="adviceFeedback()">意见反馈</a></li> -->
+							<li><a href="#" onclick="showCreateGroupPanel()">创建群组</a></li>
 							<li class="divider"></li>
-							<li><a href="#" onclick="logout()">退出</a></li>
-						</ul> -->
+							<li><a href="#" onclick="logout()">退出帐号</a></li>
+						</ul>
 					</div>
 				</span>
 			</div>
@@ -90,6 +91,7 @@
 					<div id="groupMemberInfoList" class="groupMemberInfoList">
 						<ul id="groupMemberInfoListUL">
 							<li id='addNewMember' onclick="addNewMember();"><img src="./res/img/head/add.png"/><p class="profileName">加人</p></li>
+							<!-- <li id='exitGroupButton' onclick="exitGroup();"><img src="./res/img/head/add.png"/><p class="profileName">退出</p></li> -->
 						</ul>
 					</div>
 				</div>
@@ -223,6 +225,27 @@
 						<div class="modal-footer">
 							<button id="addFriendConfirm" class="btn btn-primary" onclick="sendAddFriendCmd();" data-dismiss="modal">发送请求</button>
 							<button id="cancelfileSend" class="btn" data-dismiss="modal">取消</button>
+						</div>
+					</div>
+				</div>
+		</div>
+		
+		<div id="createGroupModal" class="modal fade" tabindex="-1" role="dialog"
+				aria-hidden="true" data-backdrop="true">
+				<div class="modal-dialog">
+    				<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"
+								aria-hidden="true">&times;</button>
+							<h3>创建群组</h3>
+						</div>
+						<div class="modal-body">
+							<input type="text" name="group_name" id="group_name" class="form-control" placeholder="输入群组名称"/>
+							<input type="text" name="group_desc" id="group_desc" class="form-control" placeholder="输入群组描述"/>
+						</div>
+						<div class="modal-footer">
+							<button id="createGroupConfirm" class="btn btn-primary" onclick="createGroup();" data-dismiss="modal">发送请求</button>
+							<button id="cancelCreateGroup" class="btn" data-dismiss="modal">取消</button>
 						</div>
 					</div>
 				</div>

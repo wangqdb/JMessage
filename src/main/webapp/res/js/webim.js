@@ -91,6 +91,12 @@ JPushIM.init({
 	onAddFriendCmd : function(data){
 		addFriendCmdResp(data);
 	},
+	onCreateGroupCmd : function(data){
+		createGroupResp(data);
+	},
+	onExitGroupCmd : function(data){
+		exitGroupResp(data);
+	},
 	onUpdateGroupInfoEventNotification: function(data){
 		updateGroupInfoEventResp(data);
 	},
@@ -364,7 +370,9 @@ var chatEventResp = function(data){
 		juid : juid,
 		sid : sid,
 		messageId : data.messageId,
-		iMsgType : data.iMsgType
+		iMsgType : data.iMsgType,
+		from_uid : data.from_uid,
+		from_gid : data.from_gid
 	});
 };
 
@@ -413,6 +421,47 @@ var addFriendCmdResp = function(data){
 	// to do
 };
 
+//  处理创建群组的响应
+var createGroupResp = function(data){
+	var uielem = document.getElementById("grouplistUL");
+	var lielem = document.createElement("li");
+	$(lielem).attr({
+		'id' : data.gid,
+		'chat' : 'chat',
+		'onclick': 'chooseGroupDivClick(this)',
+		'displayName' : data.group_name,
+	});
+	
+	var imgelem = document.createElement("img");
+	imgelem.setAttribute("src", "./res/img/head/group_normal.png");
+	imgelem.setAttribute("style", "border-radius: 50%;");
+		
+	var unreadelem = document.createElement("img");
+	unreadelem.setAttribute("src", "./res/img/msg_unread.png");
+	unreadelem.setAttribute("class", "unread");
+	unreadelem.setAttribute("style", "visibility:hidden");
+	lielem.appendChild(imgelem);
+	lielem.appendChild(unreadelem);
+		
+	var spanelem = document.createElement("span");
+	$(spanelem).attr({
+		"class" : "contractor-display-style"
+	});
+	spanelem.innerHTML = data.group_name;
+	lielem.appendChild(spanelem);
+	uielem.appendChild(lielem);
+};
+
+//  退出群组响应
+var exitGroupResp = function(data){
+	var gid = data.gid;
+	$('li#'+gid).remove();
+	$('li#conversion-'+gid).remove();
+	$('#groupInfo').slideUp();
+	$('#chat01.chat01').slideDown();
+	$('.chat02').slideDown();
+};
+
 //  修改群信息响应处理
 var updateGroupInfoEventResp = function(data){
 	//data = jQuery.parseJSON(data);
@@ -431,12 +480,16 @@ var eventNotificationResp = function(data){
 	data = jQuery.parseJSON(data);
 	var eventId = data.eventId;
 	var eventType = data.eventType;
+	var from_uid = data.from_uid;
+	var gid = data.gid;
 	JPushIM.eventSyncResp({
 		uid : curUserId,
 		juid : juid,
 		sid : sid,
 		eventId : eventId,
-		eventType : eventType
+		eventType : eventType,
+		from_uid : from_uid,
+		gid : gid
 	});
 	
 	var eventType = data.eventType;
@@ -1534,6 +1587,7 @@ var logout = function(){
 			user_name : user_name
 	};
 	JPushIM.logoutEvent(options);
+	window.location.reload();
 };
 
 //  发起聊天
@@ -1546,10 +1600,39 @@ var sendStartNewChatCmd = function(){
 	
 };
 
+var showCreateGroupPanel = function(){
+	$('#createGroupModal').modal('show');
+};
+
+//  创建群组
+var createGroup = function(){
+	var group_name = $('#group_name').val();
+	var group_desc = $('#group_desc').val();
+	var options = {
+			sid : sid,
+			juid : juid,
+			uid : uid,
+			group_name : group_name,
+			group_desc : group_desc
+	};
+	JPushIM.createGroupCmd(options);
+};
+
 //  添加群组新成员
 var addNewMember = function(){
 	$('#addGroupMemberModal').modal('show');
 }
+
+//  主动退出群
+var exitGroup = function(){
+	var options = {
+		sid : sid,
+		juid : juid,
+		uid : uid,
+		gid : curChatGroupId
+	};
+	JPushIM.exitGroupCmd(options);
+};
 
 //  显示群成员信息
 var showMemberInfo = function(dom){

@@ -7152,6 +7152,12 @@ JPushIM = (function() {
 			  options.onMsgSyncEvent(data);
 			  emojify.run();
 		  });
+		  this.socket.on('createGroupCmd', function(data){
+			  options.onCreateGroupCmd(data);
+		  });
+		  this.socket.on('exitGroupCmd', function(data){
+			  options.onExitGroupCmd(data);
+		  });
 		  this.socket.on('addFriendCmd', function(data){
 			  options.onAddFriendCmd(data);
 		  });
@@ -7184,7 +7190,12 @@ JPushIM = (function() {
 				'APPKEY_USERNAME_NOT_FIT' : 872004,
 				'SEND_MSG_FAILTURE' : 872005,
 				'ADD_GROUP_MEMBER_FAILTURE' : 872006,
-				'DEL_GROUP_MEMBER_FAILTURE' : 872007
+				'DEL_GROUP_MEMBER_FAILTURE' : 872007,
+				'GROUP_NAME_NULL' : 808001,
+				'NO_PERMISSION_CREATE_GROUP' : 808002,
+				'USER_CREATE_GROUP_TOOMUCH' : 808003,
+				'GROUP_NAME_TOO_LONG' : 808004,
+				'GROUP_DESC_TOO_LONG' : 808005
 		};
 		//   JPushIM 异常处理
 		var IMDefaultExceptionTrack = function(code){
@@ -7228,6 +7239,21 @@ JPushIM = (function() {
 		   	case JPushIM.Exception.DEL_GROUP_MEMBER_FAILTURE:
 		   		alert('删除群组成员失败');  // im rm group member 
 		   		break;
+		   	case JPushIM.Exception.GROUP_NAME_NULL:
+		   		alert('群组名称为空');
+		   		break;
+		   	case JPushIM.Exception.NO_PERMISSION_CREATE_GROUP:
+		   		alert('没有创建群组权限');
+		   		break;
+		   	case JPushIM.Exception.USER_CREATE_GROUP_TOOMUCH:
+		   		alert('创建群组过多');
+		   		break;
+		   	case JPushIM.Exception.GROUP_NAME_TOO_LONG:
+		   		alert('群组名称太长');
+		   		break;
+		   	case JPushIM.Exception.GROUP_DESC_TOO_LONG:
+		   		alert('群组描述太长');
+		   		break;
 		   	default:
 		   		alert('JPushIM 异常');
 		   		break;
@@ -7236,8 +7262,10 @@ JPushIM = (function() {
 	 
 	    //  触发定义事件
 	   JPushIM.sendLoginEvent = function(options) {
+		   var rid = JPushIM.getRID();
 		   this.socket.emit('loginEvent', {
 			   appKey: this.appKey,
+			   rid : options.rid || rid,
 	         userName: options.userName,
 	         password: options.password
 	        }); // 连接成功后触发登陆
@@ -7275,28 +7303,33 @@ JPushIM = (function() {
 		   });
 	    };
 	   JPushIM.updateGroupNameEvent = function(options){
+		   var rid = JPushIM.getRID();
 		   this.socket.emit('updateGroupName', {
 			   appKey: this.appKey,
 			   sid : options.sid,
 				juid : options.juid,
 				uid : options.uid,
+				rid : options.rid || rid,
 				user_name : options.user_name,
 				gid : options.gid,
 				group_name : options.group_name
 		   });
 	    };
 	   JPushIM.addGroupMemberEvent = function(options){
+		   var rid = JPushIM.getRID();
 		   this.socket.emit('addGroupMember', {
 			   appKey: this.appKey,
 			   sid : options.sid,
 				juid : options.juid,
 				uid : options.uid,
 				gid : options.gid,
+				rid : options.rid || rid,
 				member_count : options.member_count,
 				username : options.username
 		   });
 	    };
 	   JPushIM.delGroupMemberEvent = function(options){
+		   var rid = JPushIM.getRID();
 		   this.socket.emit('delGroupMember', {
 			   appKey: this.appKey,
 			   sid : options.sid,
@@ -7304,6 +7337,7 @@ JPushIM = (function() {
 				uid : options.uid,
 				toUid : options.toUid,
 				gid : options.gid,
+				rid : options.rid || rid,
 				member_count : options.member_count
 		   });
 		};
@@ -7312,28 +7346,59 @@ JPushIM = (function() {
 		   emojify.run();
 	    };
 	   JPushIM.chatMsgSyncResp = function(options){
+		   var rid = JPushIM.getRID();
 		   this.socket.emit('chatMsgSyncResp', {
 			   appKey: this.appKey,
 			   uid : options.uid,
 				juid : options.juid,
 				sid : options.sid,
+				rid : rid,
 				messageId : options.messageId,
-				iMsgType : options.iMsgType
+				iMsgType : options.iMsgType,
+				from_uid : options.from_uid,
+				from_gid : options.from_gid
 		   });
 		};
 		JPushIM.eventSyncResp = function(options){
-			   this.socket.emit('eventSyncResp', {
-				   appKey: this.appKey,
-				   uid : options.uid,
-					juid : options.juid,
-					sid : options.sid,
-					eventId : options.eventId,
-					eventType : options.eventType
-			   });
+			var rid = JPushIM.getRID();
+			this.socket.emit('eventSyncResp', {
+				appKey: this.appKey,
+				uid : options.uid,
+				juid : options.juid,
+				sid : options.sid,
+				rid : rid,
+				eventId : options.eventId,
+				eventType : options.eventType,
+				from_uid : options.from_uid,
+				gid : options.gid
+			});
 		};
 	   JPushIM.addFriendCmd = function(options){
 		   this.socket.emit('addFriendCmd', options);
 	    };
+	   JPushIM.createGroupCmd = function(options){
+		   var rid = JPushIM.getRID();
+		   this.socket.emit('createGroupCmd', {
+	    		appKey: this.appKey,
+	    		sid : options.sid,
+				juid : options.juid,
+				uid : options.uid,
+				rid : options.rid || rid,
+				group_name : options.group_name,
+				group_desc : options.group_desc
+	    	});
+		};
+		JPushIM.exitGroupCmd = function(options){
+			var rid = JPushIM.getRID();
+		   this.socket.emit('exitGroupCmd', {
+		  		appKey: this.appKey,
+		  		sid : options.sid,
+				juid : options.juid,
+				uid : options.uid,
+				rid : options.rid || rid,
+				gid : options.gid
+		   	});
+		};
 	   JPushIM.logoutEvent = function(options){
 	    	this.socket.emit('logout', {
 	    		appKey: this.appKey,
