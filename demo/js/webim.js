@@ -154,7 +154,7 @@ var bindSocketIoClientEventResp = function(data){
 	JMessage.getContracterListEvent(options);  // 目前无好友模式，该接口测试使用
 	JMessage.getGroupListEvent(options);
 	$("body").eq(0).css({
-		"background-image":"url('./res/img/bg/imbg003.png')",
+		"background-image":"url('./img/bg/imbg003.png')",
 		"background-attachment":"fixed",
 		"background-repeat":"no-repeat",
 		"background-size":"cover",
@@ -233,11 +233,11 @@ var getContracterListResp = function(data){
 			'displayName' : data[i].username
 		});
 		var imgelem = document.createElement("img");
-		imgelem.setAttribute("src", "./res/img/head/contact_normal.png");
+		imgelem.setAttribute("src", "./img/head/contact_normal.png");
 		imgelem.setAttribute("style", "border-radius: 50%;");
 		
 		var unreadelem = document.createElement("img");
-		unreadelem.setAttribute("src", "./res/img/msg_unread.png");
+		unreadelem.setAttribute("src", "./img/msg_unread.png");
 		unreadelem.setAttribute("class", "unread");
 		unreadelem.setAttribute("style", "visibility:hidden");
 		lielem.appendChild(imgelem);
@@ -279,11 +279,11 @@ var getGroupsListResp = function(data){
 		});
 		
 		var imgelem = document.createElement("img");
-		imgelem.setAttribute("src", "./res/img/head/group_normal.png");
+		imgelem.setAttribute("src", "./img/head/group_normal.png");
 		imgelem.setAttribute("style", "border-radius: 50%;");
 		
 		var unreadelem = document.createElement("img");
-		unreadelem.setAttribute("src", "./res/img/msg_unread.png");
+		unreadelem.setAttribute("src", "./img/msg_unread.png");
 		unreadelem.setAttribute("class", "unread");
 		unreadelem.setAttribute("style", "visibility:hidden");
 		lielem.appendChild(imgelem);
@@ -323,7 +323,7 @@ var getGroupMemberListResp = function(data){
 			var uid = data[i].uid;
 			var username = data[i].username;
 			var ele = "<li id="+ uid + " onmouseover='showDelMemMark(this);' onmouseout='hideDelMemMark(this);' >" +
-							"<img id="+ uid +" class='del-mark' src='./res/img/head/del.png' onclick='delGroupMember(this);' />" +
+							"<img id="+ uid +" class='del-mark' src='./img/head/del.png' onclick='delGroupMember(this);' />" +
 							"<img id="+ uid +" onclick='showMemberInfo(this);' class='avator' src='./res/img/head/header2.jpg'/>" +
 							"<p class='profileName'>"+username+"</p></li>";
 			 $('#addNewMember').before(ele);
@@ -376,7 +376,7 @@ var msgFeedBackResp = function(data){
 		});
 		$('img#'+rid).attr('status', 1);
 	} else {
-		$('img#'+rid).attr('src', './res/img/failture.png');
+		$('img#'+rid).attr('src', './img/failture.png');
 		$('img#'+rid).attr('onclick', 'resendMsg(this)');
 		if(code==800012){
 			alert('您可能在其他终端登陆，该设备用户已下线');
@@ -421,11 +421,11 @@ var createGroupResp = function(data){
 	});
 	
 	var imgelem = document.createElement("img");
-	imgelem.setAttribute("src", "./res/img/head/group_normal.png");
+	imgelem.setAttribute("src", "./img/head/group_normal.png");
 	imgelem.setAttribute("style", "border-radius: 50%;");
 		
 	var unreadelem = document.createElement("img");
-	unreadelem.setAttribute("src", "./res/img/msg_unread.png");
+	unreadelem.setAttribute("src", "./img/msg_unread.png");
 	unreadelem.setAttribute("class", "unread");
 	unreadelem.setAttribute("style", "visibility:hidden");
 	lielem.appendChild(imgelem);
@@ -487,7 +487,7 @@ var eventNotificationResp = function(data){
 		var memberName = data.username;
 		message = data.message;
 		var ele = "<li id="+ memberUid + " onmouseover='showDelMemMark(this);' onmouseout='hideDelMemMark(this);' >" +
-						"<img id="+ memberUid +" class='del-mark' src='./res/img/head/del.png' onclick='delGroupMember(this);' />" +
+						"<img id="+ memberUid +" class='del-mark' src='./img/head/del.png' onclick='delGroupMember(this);' />" +
 						"<img id="+ memberUid +" onclick='showMemberInfo(this);' class='avator' src='./res/img/head/header2.jpg'/>" +
 						"<p class='profileName'>"+memberName+"</p></li>";
 		 $('#addNewMember').before(ele);
@@ -747,11 +747,11 @@ var addContractToConversionList = function(id ,name){
 		'displayName' : name
 	});
 	var imgelem = document.createElement("img");
-	imgelem.setAttribute("src", "./res/img/head/contact_normal.png");
+	imgelem.setAttribute("src", "./img/head/contact_normal.png");
 	imgelem.setAttribute("style", "border-radius: 50%;");
 	
 	var unreadelem = document.createElement("img");
-	unreadelem.setAttribute("src", "./res/img/msg_unread.png");
+	unreadelem.setAttribute("src", "./img/msg_unread.png");
 	unreadelem.setAttribute("class", "unread");
 	unreadelem.setAttribute("style", "visibility:hidden");
 	lielem.appendChild(imgelem);
@@ -800,11 +800,11 @@ var addGroupToConversionList = function(id ,name){
 		'displayName' : name
 	});
 	var imgelem = document.createElement("img");
-	imgelem.setAttribute("src", "./res/img/head/group_normal.png");
+	imgelem.setAttribute("src", "./img/head/group_normal.png");
 	imgelem.setAttribute("style", "border-radius: 50%;");
 	
 	var unreadelem = document.createElement("img");
-	unreadelem.setAttribute("src", "./res/img/msg_unread.png");
+	unreadelem.setAttribute("src", "./img/msg_unread.png");
 	unreadelem.setAttribute("class", "unread");
 	unreadelem.setAttribute("style", "visibility:hidden");
 	lielem.appendChild(imgelem);
@@ -1312,7 +1312,7 @@ var showSendMsgFailtureMark = function(rid){
 	var status = $('img#'+rid).attr('status');
 	console.log('msg: '+rid+', status: '+status);
 	if(status==0){
-		$('img#'+rid).attr('src', './res/img/failture.png');
+		$('img#'+rid).attr('src', './img/failture.png');
 		$('img#'+rid).attr('onclick', 'resendMsg(this)');
 	}
 }
@@ -1323,7 +1323,7 @@ var resendMsg = function(dom){  //  消息重发函数
 	if(message==''||message==undefined){
 		console.log('not found message content, creat_time: '+create_time);
 	}
-	$('img#'+rid).attr('src', './res/img/issending.gif');
+	$('img#'+rid).attr('src', './img/issending.gif');
 	JMessage.chatEvent(message);
 	listenSendMsgTimeOut(rid);
 }
@@ -1362,7 +1362,7 @@ var appendMsgSendByMe = function(rid, message) {
 		lineDiv.appendChild(ele);
 	}
 	
-	var eletext = "<img src='./res/img/issending.gif' status=0 id="+rid+"><p3 id="+rid+">" + message + "</p3>";
+	var eletext = "<img src='./img/issending.gif' status=0 id="+rid+"><p3 id="+rid+">" + message + "</p3>";
 	
 	var ele = $(eletext);
 	ele[1].setAttribute("class", "chat-content-p3");

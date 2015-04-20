@@ -3,11 +3,10 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>JMessage Web版</title>
-<link rel="stylesheet" type="text/css" href="./res/css/webim.css" />
-<link rel="stylesheet" type="text/css" href="./res/css/bootstrap.css" />
-<link rel="stylesheet" type="text/css" href="./res/css/emojify-emoticons.min.css" />
+<link rel="stylesheet" type="text/css" href="./css/webim.css" />
+<link rel="stylesheet" type="text/css" href="./css/bootstrap.css" />
 </head>
-<body style="background-image:url('./res/img/bg/imbg003.png') ;background-attachment:fixed;background-repeat:no-repeat;background-size:cover;-moz-background-size:cover;-webkit-background-size:cover;">
+<body style="background-image:url('./img/bg/imbg003.png') ;background-attachment:fixed;background-repeat:no-repeat;background-size:cover;-moz-background-size:cover;-webkit-background-size:cover;">
 
 	<div class="container" id="loginPanel" style="width:300px;">
         <h3 class="form-signin-heading">JMessage</h3><br/>
@@ -17,13 +16,13 @@
     </div>
     
     <div id="waitLoginmodal" style="display:none;margin:0 auto;width:400px;" class="container">
-		<img src="./res/img/isloading.gif"></img>
+		<img src="./img/isloading.gif"></img>
 	 </div>
     
 	<div class="content" id="content" style="display: none">
 		<div class="leftcontact" id="leftcontact">
 			<div id="headerimg" class="leftheader">
-				<span> <img src="./res/img/head/header2.jpg" alt="logo"
+				<span> <img src="./img/head/header2.jpg" alt="logo"
 					class="img-circle" width="60px" height="60px"
 					style="margin-top: -40px; margin-left: 20px" /></span> <span
 					id="login_user" class="login_user_title"> <a
@@ -63,7 +62,7 @@
 				    </li>
 				</ul> -->
 			</div>
-			<div id="conversionlist" style="height: 450px; overflow-y: auto; overflow-x: auto; background-image: url('./res/img/bg/tabbg.jpg')"></div>
+			<div id="conversionlist" style="height: 450px; overflow-y: auto; overflow-x: auto; background-image: url('./img/bg/tabbg.jpg')"></div>
 			<div id="contractlist" style="height: 450px; overflow-y: auto; overflow-x: auto;  display:none;"></div>
 			<div id="grouplist" style="height: 450px; overflow-y: auto; overflow-x: auto; display:none;"></div>
 		</div>
@@ -76,7 +75,7 @@
 				<div class="chat01_title">
 					<ul class="talkTo">
 						<li style="float: left;" onclick="backToChat();"><img
-								src="./res/img/head/back.png"
+								src="./img/head/back.png"
 								style="margin-right: 15px; cursor: pointer; width: 18px;" title="返回" />
 						</li>
 						<li style="margin-left: 160px; font-size:16px;">群组信息</li>
@@ -90,8 +89,8 @@
 					</div>
 					<div id="groupMemberInfoList" class="groupMemberInfoList">
 						<ul id="groupMemberInfoListUL">
-							<li id='addNewMember' onclick="addNewMember();"><img src="./res/img/head/add.png"/><p class="profileName">加人</p></li>
-							<!-- <li id='exitGroupButton' onclick="exitGroup();"><img src="./res/img/head/add.png"/><p class="profileName">退出</p></li> -->
+							<li id='addNewMember' onclick="addNewMember();"><img src="./img/head/add.png"/><p class="profileName">加人</p></li>
+							<!-- <li id='exitGroupButton' onclick="exitGroup();"><img src="./img/head/add.png"/><p class="profileName">退出</p></li> -->
 						</ul>
 					</div>
 				</div>
@@ -102,11 +101,11 @@
 					<ul class="talkTo">
 						<li id="talkTo"><a href="#"></a></li>
 						<!-- <li id="recycle" style="float: right;"><img
-							src="./res/img/recycle.png" onclick="clearCurrentChat();"
+							src="./img/recycle.png" onclick="clearCurrentChat();"
 							style="margin-right: 15px; cursor: hand; width: 18px;" title="清屏" /></li> -->
 						<li id="roomInfo" style="float: right; visibility: hidden"><img
 							id="roomMemberImg"
-							src="./res/img/head/group_normal22.png"
+							src="./img/head/group_normal22.png"
 							onclick="showGroupMembers();"
 							style="margin-right: 15px; cursor: pointer; width: 25px; height:22px; display: block;"
 							title="群组成员" /></li>
@@ -154,7 +153,7 @@
 				</div>
 				<div class="chat02_bar">
 					<ul>
-						<li style="right: 5px; top: 5px;"><img src="./res/img/send_btn.jpg"
+						<li style="right: 5px; top: 5px;"><img src="./img/send_btn.jpg"
 							onclick="sendText()" /></li>
 					</ul>
 				</div> -->
@@ -351,7 +350,7 @@
 						</div>
 						<div class="modal-body">
 							<div class="row">
-								<img class='groupMemberDetailAvator' src="./res/img/head/header2.jpg"/>
+								<img class='groupMemberDetailAvator' src="./img/head/header2.jpg"/>
 								<input id="groupMemberDetailId" type="hidden" />
 								<p class="groupMemberDetailName"></p><br/>
 								<p class="groupMemberDetailLocation">广东 深圳</p>
@@ -367,16 +366,9 @@
 	</div> 
 	
 	
-<script type="text/javascript" src="./res/js/jquery.js"></script>
-<script type="text/javascript" src="./res/js/bootstrap.js"></script>
-<script type="text/javascript" src="./res/js/upload.file.utils.js"></script>
-<script type="text/javascript" src="./res/js/moxie.js"></script>
-<script type="text/javascript" src="./res/js/plupload.min.js"></script>
-<script type="text/javascript" src="./res/js/qiniu.min.js"></script>
-<script type="text/javascript" src="./res/js/socket.io.js"></script>
-<script type="text/javascript" src="./res/js/emojify.js"></script>  <!-- emoji 处理 -->
-<script type="text/javascript" src="./res/js/JPushIMJsSdk.js"></script>  <!-- jpush im sdk -->
-<script type="text/javascript" src="./res/js/webim.js"></script>  <!-- im logic js -->
+<script type="text/javascript" src="./js/bootstrap.js"></script>
+<script type="text/javascript" src="./js/jmessage-1.0.0.js"></script>  <!-- jmessage sdk -->
+<script type="text/javascript" src="./js/webim.js"></script>  <!-- im logic js -->
 
 </body>
 </html>

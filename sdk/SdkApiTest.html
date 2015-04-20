@@ -1,0 +1,253 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>API Test</title>
+</head>
+<body>
+<input type="button" onclick='testConfig();' value='config'/>
+<input type="button" onclick='testLogin();' value='login'/>
+<input type="button" onclick='testLogout();' value='logout'/>
+<input type="button" onclick='testGetUserInfo();' value='getUserInfo'/><br/>
+<input type="button" onclick='testSendMessage();' value='sendSingleMessage'/>
+<input type="button" onclick='testSendGroupMessage();' value='sendGroupMessage'/><br/>
+<input type="button" onclick='testCreateGroup();' value='createGroup'/>
+<input type="button" onclick='testGetGroupInfo();' value='getGroupInfo'/>
+<input type="button" onclick='testUpdateGroupInfo();' value='updateGroupInfo'/><br/>
+<input type="button" onclick='testAddGroupMembers();' value='addGroupMembers'/>
+<input type="button" onclick='testRemoveGroupMembers();' value='removeGroupMembers'/>
+<input type="button" onclick='testExitGroup();' value='exitGroup'/>
+<input type="button" onclick='testGetGroupList();' value='getGroupList'/>
+<hr/>
+<input type="file" name="uploadFile" id="uploadFile" />
+<input type="button" value="单发图片消息" onclick="sendImageMessage();"/> 
+<input type="button" value="群发图片消息" onclick="sendGroupImageMessage();"/> 
+
+<script data-main="main" src="./jmessage-1.0.0.js"></script>
+<script type="text/javascript">
+	// config
+	//var testConfig = function(){
+		JMessage.config({
+			appKey: '4f7aef34fb361292c566a1cd',   
+			timestamp: 'timestamp2',     
+			randomStr: 'randomStr3',
+			signature: 'signature4'
+		});
+	//};
+
+	JMessage.ready(function(){
+		console.log('config ready');
+	});
+
+	JMessage.error(function(code, message){
+		console.log('config error code: '+code+', message: '+message);
+	});
+
+    JMessage.onConnected(function(){
+        console.log('connect success');        
+    });
+
+    JMessage.onDisconnected(function(){
+        console.log('disconnected from server');        
+    });
+	
+	// 接收消息
+	JMessage.onMessageReceived(function(jMessage){
+		console.log(jMessage);
+	});
+	
+	// 接收事件
+	JMessage.onEventReceived(function(jEvent){
+		console.log(jEvent);
+	});
+	
+	// login
+	var testLogin = function(){
+		JMessage.login({
+			username: 'p001',
+			password: '1111',
+			success: function(){
+				console.log('login success');
+			},
+			fail: function(code, message){
+				console.log('login fail, code: '+code+', message: '+message);
+			}
+		});
+	};
+	
+	// logout
+	var testLogout = function(){
+		JMessage.logout();
+	};
+	
+	// getUserInfo
+	var testGetUserInfo = function(){
+		JMessage.getUserInfo({
+	   	username: 'p002',
+		   success: function(response) {
+		    	console.log('userinfo: '+response);
+		  	},
+		  	fail: function(code, message){
+		  		console.log('getUserInfo fail, code: '+code+', message: '+message);
+		  	}
+		});
+	};
+	
+	// sendMessage
+	var testSendMessage = function(){
+		JMessage.sendTextMessage({
+	   	    targetId: 'p002',
+	   	    targetType: 'single',
+	   	    text: 'test message',
+		    success: function() {
+		    	console.log('sendMessage success');
+		  	},
+		  	fail: function(code, message){
+		  		console.log('sendMessage fail, code: '+code);
+		  	}
+		});
+	};
+	
+    // sendGroupMessage
+    var testSendGroupMessage = function(){
+        JMessage.sendTextMessage({
+	   	    targetId: '10003195',
+	   	    targetType: 'group',
+	   	    text: 'test message',
+		    success: function() {
+			    console.log('sendGroupMessage success');
+            },
+		    fail: function(code, message){
+		  	    console.log('sendGroupMessage fail, code: '+code);
+		    }
+        });
+    };
+
+	// createGroup
+	var testCreateGroup = function(){
+		JMessage.createGroup({
+		  groupName: 'tGroup',
+		  groupDescription: '测试建群',
+		  success: function(response) {
+		  	  console.log('createGroup success: '+response);
+		  },
+		  fail: function(code, message){
+			  console.log('createGroup fail, code: '+code);
+		  }
+		});
+	};
+	
+	// getGroupInfo
+	var testGetGroupInfo = function(){
+		JMessage.getGroupInfo({
+		 	groupId: 10003195,
+		  	success: function(response) {
+		  	  console.log('groupInfo success: '+response);
+		  	},
+		 	fail: function(code, message){
+			  console.log('getGroupInfo fail, code: '+code);
+		  	}
+		});
+	};
+	
+	// addGroupMembers
+	var testAddGroupMembers = function(){
+		JMessage.addGroupMembers({
+			  groupId: 10003195,          
+			  memberUsernames:['p002', 'p003'],
+			  success: function() {
+			  	  console.log('addGroupMember success');
+			  },
+			  fail: function(code, message){
+				  console.log('addGroupMember fail, code: '+code);
+			  }
+		});
+	};
+	
+	// removeGroupMembers
+	var testRemoveGroupMembers = function(){
+		JMessage.removeGroupMembers({
+			  groupId: 10003195,          
+			  memberUsernames:['p002', 'p003'],
+			  success: function() {
+			  	  console.log('removeGroupMembers success');
+			  },
+			  fail: function(code, message){
+				  console.log('removeGroupMembers fail, code: '+code);
+			  }
+		});
+	};
+	
+	// exitGroup
+	var testExitGroup = function(){
+		JMessage.exitGroup({
+			  groupId: 10003134,          
+			  success: function() {
+			  	  console.log('exitGroup success');
+			  },
+			  fail: function(code, message){
+				  console.log('exitGroup fail, code: '+code);
+			  }
+		});
+	};
+	
+	 // getGroupList
+	 var testGetGroupList = function(){
+		 JMessage.getGroupList({
+			  success: function(response) {
+			  	  console.log('getGroupList success: '+response);
+			  },
+			  fail: function(code, message){
+				  console.log('getGroupList fail, code: '+code);
+			  }
+		});
+	 };
+	 
+	 // updateGroupInfo
+	 var testUpdateGroupInfo = function(){
+		 JMessage.updateGroupInfo({
+			 groupId: 10003195,
+			 groupName: 'm_name',
+			 groupDescription: 'm_g_desc',
+			 success: function(response) {
+			  console.log('updateGroupInfo success: '+response);
+			 },
+			 fail: function(code, message){
+			  console.log('updateGroupInfo fail, code: '+code);
+			 }
+		});
+	 };
+
+    // send Imgage Message
+    var sendImageMessage = function(){
+        JMessage.sendImageMessage({
+	   	    targetId: 'p002',
+	   	    targetType: 'single',
+	   	    fileId: 'uploadFile',
+		    success: function() {
+		    	console.log('sendImageMessage success');
+		  	},
+		  	fail: function(code, message){
+		  		console.log('sendImageMessage fail, code: '+code);
+		  	}
+		}); 
+    };
+
+    // send group image message
+    var sendGroupImageMessage = function(){
+        JMessage.sendImageMessage({
+	   	    targetId: '10003195',
+	   	    targetType: 'group',
+	   	    fileId: 'uploadFile',
+		    success: function() {
+		    	console.log('sendImageMessage success');
+		  	},
+		  	fail: function(code, message){
+		  		console.log('sendImageMessage fail, code: '+code);
+		  	}
+		});  
+    };    
+
+</script>
+</body>
+</html>
