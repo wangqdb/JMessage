@@ -397,14 +397,74 @@ loadScript(scriptResList);
 
 JMessage = (function() {
 	   var JMessage = {};
+	   JMessage.version = '1.0';
 	   JMessage.appKey = '';
 	   JMessage.socket = '';
+	   JMessage.rid = 201503;
+	   JMessage.health_timeout = 20000;
+	   JMessage.heartbeat_timer;
+	   JMessage.last_health = -1;
 	   JMessage.url = 'http://127.0.0.1:9092';
+	   JMessage.httpServerUrl = 'http://127.0.0.1:9093';
 	   //JMessage.url = 'http://webchatserver.im.jpush.cn:9092';
 	   JMessage.QiNiuMediaUrl = 'http://jpushim.qiniudn.com/';
 	   JMessage.UpYunVoiceMediaUrl = 'http://cvoice.b0.upaiyun.com/';
 	   JMessage.UpYunImageMediaUrl = 'http://cimage.b0.upaiyun.com/';
 	   
+	   JMessage.method = {
+	   	CONNECT: "connect",
+		DISCONNECT: "disconnect",
+		HEARTBEAT: "heartbeat",
+		CONFIG: "config",
+		LOGIN: "login",
+		LOGOUT: "logout",
+		USERINFO_GET: "userinfo.get",
+		TEXTMESSAGE_SEND: "textMessage.send",
+		IMAGEMESSAGE_SEND: "imageMessage.send",
+		MESSAGE_FEEDBACK: "message.feedback",
+		EVENT_FEEDBACK: "event.feedback",
+		MESSAGE_RECEIVE: "message.receive",
+		EVENT_RECEIVE: "event.receive",
+		GROUP_CREATE: "group.create",
+		GROUPMEMBERS_ADD: "groupMembers.add",
+		GROUPMEMBERS_REMOVE: "groupMembers.remove",
+		GROUPINFO_GET: "groupInfo.get",
+		GROUPINFO_UPDATE: "groupInfo.update",
+		GROUP_EXIT: "group.exit",
+		GROUPLIST_GET: "groupList.get"
+	   };
+
+	   // request rid
+	   JMessage.getRID = function(){
+		JMessage.rid ++;
+		if (JMessage.rid > 999999) {
+			JMessage.rid = 201503;
+		}
+		return JMessage.rid;
+	   };
+
+	   JMessage.keepAlive = function(){
+	   	JMessage.heartbeat_timer = setInterval(function(){
+           	JMessage.heartbeat();
+        	}, 5000);
+	   };
+	   // heartbeat func
+	   JMessage.heartbeat = function(){
+		var time = new Date();
+		if(JMessage.last_health != -1 && (time.getTime()-JMessage.last_health>JMessage.health_timeout)){
+			console.log('try to connect again');
+			clearInterval(JMessage.heartbeat_timer);
+			JMessage.connect();
+		} else {
+			JMessage.socket.emit('data', {
+				apiVersion: JMessage.version,
+				id: JMessage.getRID(),
+				method: JMessage.method.HEARTBEAT,
+				params: {}
+			});
+		}
+	   };
+
 	   JMessage.connect = function() {
 		   if(window.WebSocket){
 			   JMessage.socket = io.connect(this.url, {
@@ -439,19 +499,24 @@ JMessage = (function() {
 		
 		// 应用配置
 		JMessage.config = function(options){
-			if(options.appKey==undefined||options.appKey==''
-				||options.timestamp==undefined||options.timestamp==''
-				||options.randomStr==undefined||options.randomStr==''
-				||options.signature==undefined||options.signature==''){
-				alert('请将配置项填写完整！');
+			if(options.appKey==undefined||options.appKey.replace(/^\s+|\s+$/g,"")==''
+				||options.timestamp==undefined||options.timestamp.replace(/^\s+|\s+$/g,"")==''
+				||options.randomStr==undefined||options.randomStr.replace(/^\s+|\s+$/g,"")==''
+				||options.signature==undefined||options.signature.replace(/^\s+|\s+$/g,"")==''){
+				alert('API-config config exception');
 				return;
 			} else {
 				JMessage.appKey = options.appKey;
-				JMessage.socket.emit('config', {
-					appKey: options.appKey,
-					timestamp: options.timestamp,
-					randomStr: options.randomStr,
-					signature: options.signature
+				JMessage.socket.emit('data', {
+					apiVersion: JMessage.version,
+					id: JMessage.getRID(),
+					method: JMessage.method.CONFIG,
+					params: {
+						appKey: options.appKey.replace(/^\s+|\s+$/g,""),
+						timestamp: options.timestamp.replace(/^\s+|\s+$/g,""),
+						randomStr: options.randomStr.replace(/^\s+|\s+$/g,""),
+						signature: options.signature.replace(/^\s+|\s+$/g,"")
+					}
 				});
 			}
 		};
@@ -477,8 +542,8 @@ JMessage = (function() {
 
 		// 用户登陆
 		JMessage.login = function(options){
-			if(options.username==undefined||options.appKey==''
-				||options.password==undefined||options.password==''
+			if(options.username==undefined||options.username.replace(/^\s+|\s+$/g,"")==''
+				||options.password==undefined||options.password.replace(/^\s+|\s+$/g,"")==''
 				||!(options.success instanceof Function||options.success==undefined)
 				||!(options.fail instanceof Function||options.fail==undefined)){
 				alert('JMessage login 配置信息填写错误！');
@@ -486,22 +551,32 @@ JMessage = (function() {
 			} else {
 				JMessage.loginSuccess = options.success;
 				JMessage.loginFail = options.fail;
-				JMessage.socket.emit('login', {
-					appKey: JMessage.appKey,
-					username: options.username,
-					password: options.password
+				JMessage.socket.emit('data', {
+					apiVersion: JMessage.version,
+					id: JMessage.getRID(),
+					method: JMessage.method.LOGIN,
+					params: {
+						appKey: JMessage.appKey.replace(/^\s+|\s+$/g,""),
+						username: options.username.replace(/^\s+|\s+$/g,""),
+						password: options.password.replace(/^\s+|\s+$/g,"")
+					}
 				});
 			}
 		};
 		
 		// 用户登出
 		JMessage.logout = function(){
-			JMessage.socket.emit('logout');
+			JMessage.socket.emit('data', {
+					apiVersion: JMessage.version,
+					id: JMessage.getRID(),
+					method: JMessage.method.LOGOUT,
+					params: {}
+			});
 		};
 		
 		// 获取用户信息
 		JMessage.getUserInfo = function(options){
-			if(options.username==undefined||options.username==''
+			if(options.username==undefined||options.username.replace(/^\s+|\s+$/g,"")==''
 				||!(options.success instanceof Function||options.success==undefined)
 				||!(options.fail instanceof Function||options.fail==undefined)){
 				alert('JMessage getUserInfo 配置信息填写错误！');
@@ -509,8 +584,13 @@ JMessage = (function() {
 			} else {
 				JMessage.getUserInfoSuccess = options.success;
 				JMessage.getUserInfoFail = options.fail;
-				JMessage.socket.emit('getUserInfo', {
-					username: options.username
+				JMessage.socket.emit('data', {
+					apiVersion: JMessage.version,
+					id: JMessage.getRID(),
+					method: JMessage.method.USERINFO_GET,
+					params: {
+						username: options.username.replace(/^\s+|\s+$/g,"")
+					}
 				});
 			}
 		};
@@ -518,19 +598,24 @@ JMessage = (function() {
 		// 发送文本消息
 		JMessage.sendTextMessage = function(options){
 			if(options.targetId==undefined||options.targetId==''
-				||options.targetType==undefined||options.targetType==''
-				||options.text==undefined||options.text==''
+				||options.targetType==undefined||options.targetType.replace(/^\s+|\s+$/g,"")==''
+				||options.text==undefined||options.text.replace(/^\s+|\s+$/g,"")==''
 				||!(options.success instanceof Function||options.success==undefined)
 				||!(options.fail instanceof Function||options.fail==undefined)){
 				alert('JMessage sendTextMessage 配置信息填写错误！');
 				return;
 			} else {
-				JMessage.sendTextMessageSuccess = options.success;
-				JMessage.sendTextMessageFail = options.fail;
-				JMessage.socket.emit('sendTextMessage', {
-					targetId: options.targetId,
-					targetType: options.targetType,
-					text: options.text
+				JMessage.sendMessageSuccess = options.success;
+				JMessage.sendMessageFail = options.fail;
+				JMessage.socket.emit('data', {
+					apiVersion: JMessage.version,
+					id: JMessage.getRID(),
+					method: JMessage.method.TEXTMESSAGE_SEND,
+					params: {
+						targetId: options.targetId,
+						targetType: options.targetType.replace(/^\s+|\s+$/g,""),
+						text: options.text.replace(/^\s+|\s+$/g,"")
+					}
 				});
 			}
 		};
@@ -538,32 +623,37 @@ JMessage = (function() {
         // 发送图片消息
         JMessage.sendImageMessage = function(options){
 			if(options.targetId==undefined||options.targetId==''
-				||options.targetType==undefined||options.targetType==''
-				||options.fileId==undefined||options.fileId==''
+				||options.targetType==undefined||options.targetType.replace(/^\s+|\s+$/g,"")==''
+				||options.fileId==undefined||options.fileId.replace(/^\s+|\s+$/g,"")==''
 				||!(options.success instanceof Function||options.success==undefined)
 				||!(options.fail instanceof Function||options.fail==undefined)){
 				alert('JMessage sendImageMessage 配置信息填写错误！');
 				return;
 			} else {
-				JMessage.sendTextMessageSuccess = options.success;
-				JMessage.sendTextMessageFail = options.fail;
+				JMessage.sendMessageSuccess = options.success;
+				JMessage.sendMessageFail = options.fail;
                 var fileMark = JMessage.appKey+new Date().getTime();
                 var count = 0;
                 $.ajaxFileUpload({
-		            url: 'http://127.0.0.1:9093',
-		            method: 'post',
-	                fileElementId: options.fileId,
-                    dataType: 'json',
-                    data: {fileId: fileMark},
+		           url: JMessage.httpServerUrl,
+		           method: 'post',
+	                fileElementId: options.fileId.replace(/^\s+|\s+$/g,""),
+                     dataType: 'json',
+                     data: {fileId: fileMark},
 	                success: function (resp){
 	                },
 	                error: function (data, status, e){
                         count++;
                         if(count==2){
-                            JMessage.socket.emit('sendImageMessage', {
-                                targetId: options.targetId,
-                                targetType: options.targetType,
-                                fileId: fileMark
+                            JMessage.socket.emit('data', {
+                            	apiVersion: JMessage.version,
+						id: JMessage.getRID(),
+						method: JMessage.method.IMAGEMESSAGE_SEND,
+						params: {
+							targetId: options.targetId,
+                                	targetType: options.targetType.replace(/^\s+|\s+$/g,""),
+                                	fileId: fileMark.replace(/^\s+|\s+$/g,"")
+						}
                             });
                         }
                     }
@@ -573,8 +663,8 @@ JMessage = (function() {
 
 		// 创建群
 		JMessage.createGroup = function(options){
-			  if(options.groupName==undefined||options.groupName==''
-				  ||options.groupDescription==undefined||options.groupDescription==''
+			  if(options.groupName==undefined||options.groupName.replace(/^\s+|\s+$/g,"")==''
+				  ||options.groupDescription==undefined||options.groupDescription.replace(/^\s+|\s+$/g,"")==''
 				  ||!(options.success instanceof Function||options.success==undefined)
 				  ||!(options.fail instanceof Function||options.fail==undefined)){
 					alert('JMessage createGroup 配置信息填写错误！');
@@ -582,16 +672,21 @@ JMessage = (function() {
 				} else {
 					JMessage.createGroupSuccess = options.success;
 					JMessage.createGroupFail = options.fail;
-					JMessage.socket.emit('createGroup', {
-						groupName: options.groupName,
-						groupDescription: options.groupDescription
+					JMessage.socket.emit('data', {
+						apiVersion: JMessage.version,
+						id: JMessage.getRID(),
+						method: JMessage.method.GROUP_CREATE,
+						params: {
+							groupName: options.groupName.replace(/^\s+|\s+$/g,""),
+							groupDescription: options.groupDescription.replace(/^\s+|\s+$/g,"")
+						}
 					});
 				}
 		};
 		
 		// 获取群信息
 		JMessage.getGroupInfo = function(options){
-			if(options.groupId==undefined||options.groupId==''
+			if(options.groupId==undefined||options.groupId==0
 				||!(options.success instanceof Function||options.success==undefined)
 				||!(options.fail instanceof Function||options.fail==undefined)){
 				alert('JMessage getGroupInfo 配置信息填写错误！');
@@ -599,17 +694,23 @@ JMessage = (function() {
 			} else {
 				JMessage.getGroupInfoSuccess = options.success;
 				JMessage.getGroupInfoFail = options.fail;
-				JMessage.socket.emit('getGroupInfo', {
-					groupId: options.groupId,
+				JMessage.socket.emit('data', {
+					apiVersion: JMessage.version,
+					id: JMessage.getRID(),
+					method: JMessage.method.GROUPINFO_GET,
+					params: {
+						groupId: options.groupId
+					}
 				});
 			}
 		};
 		
 		// 添加群成员
 		JMessage.addGroupMembers = function(options){
-			if(options.groupId==undefined||options.groupId==''
-				||options.memberUsernames==undefined||options.memberUsernames==''
+			if(options.groupId==undefined||options.groupId==0
+				||options.memberUsernames==undefined
 				||!(options.memberUsernames instanceof Array)
+				||options.memberUsernames.length==0
 				||!(options.success instanceof Function||options.success==undefined)
 				||!(options.fail instanceof Function||options.fail==undefined)){
 				alert('JMessage addGroupMember 配置信息填写错误！');
@@ -617,18 +718,24 @@ JMessage = (function() {
 			} else {
 				JMessage.addGroupMembersSuccess = options.success;
 				JMessage.addGroupMembersFail = options.fail;
-				JMessage.socket.emit('addGroupMembers', {
-					groupId: options.groupId,
-					memberUsernames: options.memberUsernames
+				JMessage.socket.emit('data', {
+					apiVersion: JMessage.version,
+					id: JMessage.getRID(),
+					method: JMessage.method.GROUPMEMBERS_ADD,
+					params: {
+						groupId: options.groupId,
+						memberUsernames: options.memberUsernames
+					}
 				});
 			}
 		};
 		
 		// 移除群成员
 		JMessage.removeGroupMembers = function(options){
-			if(options.groupId==undefined||options.groupId==''
-				||options.memberUsernames==undefined||options.memberUsernames==''
+			if(options.groupId==undefined||options.groupId==0
+				||options.memberUsernames==undefined
 				||!(options.memberUsernames instanceof Array)
+				||options.memberUsernames.length==0
 				||!(options.success instanceof Function||options.success==undefined)
 				||!(options.fail instanceof Function||options.fail==undefined)){
 				alert('JMessage removeGroupMember 配置信息填写错误！');
@@ -636,16 +743,21 @@ JMessage = (function() {
 			} else {
 				JMessage.removeGroupMembersSuccess = options.success;
 				JMessage.removeGroupMembersFail = options.fail;
-				JMessage.socket.emit('removeGroupMembers', {
-					groupId: options.group_id,
-					memberUsernames: options.memberUsernames
+				JMessage.socket.emit('data', {
+					apiVersion: JMessage.version,
+					id: JMessage.getRID(),
+					method: JMessage.method.GROUPMEMBERS_REMOVE,
+					params: {
+						groupId: options.groupId,
+						memberUsernames: options.memberUsernames
+					}
 				});
 			}
 		};
 		
 		// 退出群
 		JMessage.exitGroup = function(options){
-			if(options.groupId==undefined||options.groupId==''
+			if(options.groupId==undefined||options.groupId==0
 				||!(options.success instanceof Function||options.success==undefined)
 				||!(options.fail instanceof Function||options.fail==undefined)){
 				alert('JMessage exitGroup 配置信息填写错误！');
@@ -653,8 +765,13 @@ JMessage = (function() {
 			} else {
 				JMessage.exitGroupSuccess = options.success;
 				JMessage.exitGroupFail = options.fail;
-				JMessage.socket.emit('exitGroup', {
-					groupId: options.groupId
+				JMessage.socket.emit('data', {
+					apiVersion: JMessage.version,
+					id: JMessage.getRID(),
+					method: JMessage.method.GROUP_EXIT,
+					params: {
+						groupId: options.groupId
+					}
 				});
 			}
 		};
@@ -668,13 +785,18 @@ JMessage = (function() {
 			} else {
 				JMessage.getGroupListSuccess = options.success;
 				JMessage.getGroupListFail = options.fail;
-				JMessage.socket.emit('getGroupList');
+				JMessage.socket.emit('data', {
+					apiVersion: JMessage.version,
+					id: JMessage.getRID(),
+					method: JMessage.method.GROUPLIST_GET,
+					params: {}
+				});
 			}
 		};
 		
 		// 更新群组信息
 		JMessage.updateGroupInfo = function(options){
-			if(options.groupId==undefined||options.groupId==''
+			if(options.groupId==undefined||options.groupId==0
 				||!(options.success instanceof Function||options.success==undefined)
 				||!(options.fail instanceof Function||options.fail==undefined)){
 					alert('JMessage updateGroupInfo 配置信息填写错误！');
@@ -683,217 +805,286 @@ JMessage = (function() {
 					JMessage.updateGroupInfoSuccess = options.success;
 					JMessage.updateGroupInfoFail = options.fail;
 					var data = {
-							groupId: options.groupId
+							apiVersion: JMessage.version,
+							id: JMessage.getRID(),
+							method: JMessage.method.GROUPINFO_UPDATE,
+							params: {
+								groupId: options.groupId
+							}
 					};
 					if(options.groupName!=undefined&&options.groupName!=''){
-						data.groupName = options.groupName;
+						data.params.groupName = options.groupName.replace(/^\s+|\s+$/g,"");
 					}
 					if(options.groupDescription!=undefined&&options.groupDescription!=''){
-						data.groupDescription = options.groupDescription;
+						data.params.groupDescription = options.groupDescription.replace(/^\s+|\s+$/g,"");
 					}
-					JMessage.socket.emit('updateGroupInfo', data);
+					JMessage.socket.emit('data', data);
 				}
 		};
-        
-        // 上传文件 
-        
 
+		// 同步xiaoxi接收
+		JMessage.onMessageReceived = function(func){
+			if (func instanceof Function) {
+				JMessage.onMessageReceived = func;
+			} else {
+				alert('argument defined exception');
+			}
+		};
+
+		// 同步事件接收
+		JMessage.onEventReceived = function(func){
+			if (func instanceof Function) {
+				JMessage.onEventReceived = func;
+			} else {
+				alert('argument defined exception');
+			}
+		};
 
 		/*---------------------------------- 定义下行业务事件 -----------------------------*/
 		// 连接成功
 		JMessage.socket.on('onConnected', function(){
-			JMessage.connected();
+			if(JMessage.connected!=undefined){
+			JMessage.keepAlive();    
+                JMessage.connected();
+            } else {
+                console.log('JMessage.connected处理函数未配置');
+            }
 		});
 		
 		// 连接断开
 		JMessage.socket.on('disconnect', function(){
-			JMessage.disconnected();
+			if(JMessage.disconnected!=undefined){
+				clearInterval(JMessage.heartbeat_timer);
+                JMessage.disconnected();
+            } else {
+                console.log('JMessage.disconnected处理函数未配置');
+            }
 		});
 		JMessage.socket.on('onDisconnected', function(){
-			JMessage.disconnected();
-		});
-		
-		// SDK 配置
-		JMessage.socket.on('config', function(data){
-			data = JSON.parse(data);
-			if(data.content){
-				//JMessage.ready();
-			} else if(data.error) {
-				JMessage.error(data.error.code, data.error.message);
-			} else {
-                JMessage.ready();
+			if(JMessage.disconnected!=undefined){
+				clearInterval(JMessage.heartbeat_timer);
+                JMessage.disconnected();
+            } else {
+                console.log('JMessage.disconnected处理函数未配置');
             }
 		});
 		
-		// 用户login
-		JMessage.socket.on('login', function(data){
-			data = JSON.parse(data);
-			if(data.content){
-				//JMessage.loginSuccess();
-			} else if(data.error) {
-				JMessage.loginFail(data.error.code, data.error.message);
-			} else {
-                JMessage.loginSuccess();
-            }
-		});
-		
-		// 获取用户信息
-		JMessage.socket.on('getUserInfo', function(data){
-			data = JSON.parse(data);
-			if(data.content){
-				JMessage.getUserInfoSuccess(data.content);
-			} else if(data.error) {
-				JMessage.getUserInfoFail(data.error.code, data.error.message);
-			}
-		});
-		
-		// 同步消息接收
-		JMessage.onMessageReceived = function(func){
-			if (func instanceof Function) {
-				JMessage.socket.on('onMessageReceived', function(data){ 
-					  console.log('client msg data: '+data);
-                      data = JSON.parse(data);
-                      data = JSON.parse(data.content);
-					  var msgData = {
-                        version: data.version,
-                        targetType: data.targetType,
-                        targetId: data.targetId,
-                        targetName: data.targetName,
-                        fromType: data.fromType,
-                        fromId: data.fromId,
-                        fromName: data.fromName,
-                        createTime: data.createTime,
-                        msgType: data.msgType,
-                        msgBody: data.msgBody
-                      };
-                      func(JSON.stringify(msgData));
-                      JMessage.socket.emit('respMessageReceived', {
-						  messageId: data.messageId,
-						  msgType: data.iMsgType, 
-						  fromUid: data.fromUid,
-						  fromGid: data.fromGid
+		// SDK receive data 
+		JMessage.socket.on('data', function(data){
+			JMessage.last_health = new Date().getTime();
+			var resp = JSON.parse(data);
+			var apiVersion = resp.apiVersion;
+			var id = resp.id;
+			var method = resp.method;
+			if (JMessage.method.CONFIG===method) {
+				if(resp.data||resp.data===''){
+					if(JMessage.ready!=undefined){
+                    			JMessage.ready();
+                		} else {
+                    			console.log('JMessage.ready处理函数未配置');
+                		}
+				} else if(resp.error) {
+                		if(JMessage.error!=undefined){
+				    		JMessage.error(resp.error.code, resp.error.message);
+                		} else {
+                    			console.log('JMessage.error处理函数未配置');
+                		}
+				}
+			} else if (JMessage.method.HEARTBEAT===method) {
+				if(resp.data||resp.data===''){
+					console.log('heartbeat cuccess');
+				}
+			} else if (JMessage.method.LOGIN===method) {
+				if(resp.data||resp.data===''){
+					if(JMessage.loginSuccess!=undefined){
+                			JMessage.loginSuccess();
+					} else {
+						console.log('JMessage login success处理函数未配置');		
+					}
+				} else if(resp.error) {
+                		if(JMessage.loginFail!=undefined){
+				    		JMessage.loginFail(resp.error.code, resp.error.message);
+			    		} else {
+                    			console.log('JMessage login fail处理函数未配置');
+                		}
+				}
+			} else if (JMessage.method.LOGOUT===method) {
+				if(resp.data||resp.data===''){
+					console.log('user logout success');
+				} else if(resp.error) {
+                		console.log('user logout fail');
+				}
+			} else if (JMessage.method.USERINFO_GET===method) {
+				if(resp.data||resp.data===''){
+					if(JMessage.getUserInfoSuccess!=undefined){
+						JMessage.getUserInfoSuccess(resp.data);
+					} else {
+						console.log('JMessage getUserInfo success处理函数未配置');
+					}
+				} else if(resp.error) {
+                		if(JMessage.getUserInfoFail!=undefined){
+						JMessage.getUserInfoFail(resp.error.code, resp.error.message);
+					} else {
+						console.log('JMessage getUserInfo fail处理函数未处理');
+					}
+				}
+			} else if (JMessage.method.MESSAGE_FEEDBACK===method) {
+				if(resp.data||resp.data===''){
+					console.log('send Message success');
+				} else if(resp.error) {
+                		console.log('send Message failed, code:'+resp.error.code+', message:'+resp.error.message);
+				}
+			} else if (JMessage.method.MESSAGE_RECEIVE===method) {
+				if(resp.data||resp.data===''){
+                      	data = JSON.parse(resp.data);
+					var msgData = {
+                        		version: data.version,
+                        		targetType: data.targetType,
+                        		targetId: data.targetId,
+                        		targetName: data.targetName,
+                        		fromType: data.fromType,
+                        		fromId: data.fromId,
+                        		fromName: data.fromName,
+                        		createTime: data.createTime,
+                        		msgType: data.msgType,
+                        		msgBody: data.msgBody
+                      	};
+                      	JMessage.onMessageReceived(JSON.stringify(msgData));
+                      	JMessage.socket.emit('data', {
+                      		apiVersion: JMessage.version,
+						id: JMessage.getRID(),
+						method: JMessage.method.MESSAGE_FEEDBACK,
+						params: {
+							messageId: data.messageId,
+						  	msgType: data.iMsgType, 
+						  	fromUid: data.fromUid,
+						  	fromGid: data.fromGid
+						}
+					});
+				}
+			} else if (JMessage.method.EVENT_RECEIVE===method) {
+				if(resp.data||resp.data===''){
+					data = JSON.parse(resp.data);
+                      	var eventData = {
+                        		eventType: data.eventType,
+                        		fromUsername: data.fromUsername,
+                        		gid: data.gid,
+                        		toUsernameList: data.toUsernameList,
+                        		description: data.description
+                      	};
+					JMessage.onEventReceived(JSON.stringify(eventData));
+                      	JMessage.socket.emit('data', {
+                      		apiVersion: JMessage.version,
+						id: JMessage.getRID(),
+						method: JMessage.method.EVENT_FEEDBACK,
+						params: {
+							eventId: data.eventId,
+						  	eventType: data.iEventType, 
+						  	fromUid: data.fromUid,
+						  	gid: data.gid
+						}
 					  });
-				 });
-			} else {
-				alert('argument defined exception');
-			}
-		};
-		
-		// 同步事件接收
-		JMessage.onEventReceived = function(func){
-			if (func instanceof Function) {
-				JMessage.socket.on('onEventReceived', function(data){
-                      data = JSON.parse(data);
-                      data = JSON.parse(data.content);
-                      var eventData = {
-                        eventType: data.eventType,
-                        fromUsername: data.fromUsername,
-                        gid: data.gid,
-                        toUsernameList: data.toUsernameList,
-                        description: data.description
-                      };
-					  func(JSON.stringify(eventData));
-                      JMessage.socket.emit('respEventReceived', {
-						  eventId: data.eventId,
-						  eventType: data.iEventType, 
-						  fromUid: data.fromUid,
-						  gid: data.gid
-					  });
-				 });
-			} else {
-				alert('argument defined exception');
-			}
-		};
-		
-		// 用户发送消息状态反馈
-		JMessage.socket.on('sendTextMessage', function(data){
-			data = JSON.parse(data);
-			if(data.content){
-			    //JMessage.sendTextMessageSuccess();
-            } else if(data.error) {
-				JMessage.sendTextMessageFail(data.error.code, data.error.message);
-			} else {
-			    JMessage.sendTextMessageSuccess();
-            }
+				} 
+			} else if (JMessage.method.GROUP_CREATE===method) {
+				if(resp.data||resp.data===''){
+					if(JMessage.createGroupSuccess!=undefined){
+						JMessage.createGroupSuccess(resp.data);
+					} else {
+						console.log('JMessage createGroup success处理函数未配置');
+					}
+				} else if(resp.error) {
+                		if(JMessage.createGroupFail!=undefined){
+						JMessage.createGroupFail(resp.error.code, resp.error.message);
+					} else {
+						console.log('JMessage createGroup fail处理函数未配置');
+					}
+				}
+			} else if (JMessage.method.GROUPMEMBERS_ADD===method) {
+				if(resp.data||resp.data===''){
+					if(JMessage.addGroupMembersSuccess!=undefined){
+						JMessage.addGroupMembersSuccess();
+					} else {
+						console.log('JMessage addGroupMembers success处理函数未配置');
+					}
+				} else if(resp.error) {
+                		if(JMessage.addGroupMembersFail!=undefined){
+						JMessage.addGroupMembersFail(resp.error.code, resp.error.message);
+					} else {
+						console.log('JMessage addGroupMembers fail处理函数未配置');
+					}
+				}
+			} else if (JMessage.method.GROUPMEMBERS_REMOVE===method) {
+				if(resp.data||resp.data===''){
+					if(JMessage.removeGroupMembersSuccess!=undefined){
+ 	               			JMessage.removeGroupMembersSuccess();
+					} else {
+						console.log('JMessage removeGroupMembers success处理函数未配置');
+					}
+				} else if(resp.error) {
+                		if(JMessage.removeGroupMembersFail!=undefined){
+						JMessage.removeGroupMembersFail(resp.error.code, resp.error.message);
+					} else {
+						console.log('JMessage removeGroupMembers fail处理函数未配置');
+					}
+				}
+			} else if (JMessage.method.GROUPINFO_GET===method) {
+				if(resp.data||resp.data===''){
+					if(JMessage.getGroupInfoSuccess!=undefined){
+						JMessage.getGroupInfoSuccess(resp.data);
+					} else {
+						console.log('JMessage getGroupInfo success处理函数未配置');
+					}
+				} else if(resp.error) {
+                		if(JMessage.getGroupInfoFail!=undefined){
+						JMessage.getGroupInfoFail(resp.error.code, resp.error.message);
+					} else {
+						console.log('JMessage getGroupInfo fail处理函数未配置');
+					}	
+				}
+			} else if (JMessage.method.GROUPINFO_UPDATE===method) {
+				if(resp.data||resp.data===''){
+					if(JMessage.updateGroupInfoSuccess!=undefined){
+						JMessage.updateGroupInfoSuccess(resp.data);
+					} else {
+						console.log('JMessage updateGroupInfo success处理函数未配置');			
+					}
+				} else if(resp.error) {
+                		if(JMessage.updateGroupInfoFail!=undefined){
+						JMessage.updateGroupInfoFail(resp.error.code, resp.error.message);
+					} else {
+						console.log('JMessage updateGroupInfo fail处理函数未配置');
+					}
+				}
+			} else if (JMessage.method.GROUP_EXIT===method) {
+				if(resp.data||resp.data===''){
+					if(JMessage.exitGroupSuccess!=undefined){  
+						JMessage.exitGroupSuccess();
+					} else {
+						console.log('JMessage exitGroup success处理函数未配置');
+					}
+				} else if(resp.error) {
+                		if(JMessage.exitGroupFail!=undefined){
+						JMessage.exitGroupFail(resp.error.code, resp.error.message);
+					} else {
+						console.log('JMessage exitGroup fail处理函数未配置');
+					}
+				}
+			} else if (JMessage.method.GROUPLIST_GET===method) {
+				if(resp.data||resp.data===''){
+					if(JMessage.getGroupListSuccess!=undefined){
+						JMessage.getGroupListSuccess(resp.data);
+					} else {
+						console.log('JMessage getGroupList success处理函数未配置');
+					}
+				} else if(resp.error) {
+                		if(JMessage.getGroupListFail!=undefined){
+						JMessage.getGroupListFail(resp.error.code, resp.error.message);
+					} else {
+						console.log('JMessage getGroupList fail处理函数未配置');				
+					}
+				}
+			};
 		});
-		
-		// 用户创建群组
-		JMessage.socket.on('createGroup', function(data){
-			data = JSON.parse(data);
-			if(data.content){
-				JMessage.createGroupSuccess(data.content);
-			} else if(data.error) {
-				JMessage.createGroupFail(data.error.code, data.error.message);
-			}
-		});
-		
-		// 用户获取群信息
-		JMessage.socket.on('getGroupInfo', function(data){
-			data = JSON.parse(data);
-			if(data.content){
-				JMessage.getGroupInfoSuccess(data.content);
-			} else if(data.error) {
-				JMessage.getGroupInfoFail(data.error.code, data.error.message);
-			}
-		});
-		
-		// 添加群成员
-		JMessage.socket.on('addGroupMembers', function(data){
-			data = JSON.parse(data);
-			if(data.content){
-				//JMessage.addGroupMembersSuccess();
-			} else if(data.error) {
-				JMessage.addGroupMembersFail(data.error.code, data.error.message);
-			} else {
-				JMessage.addGroupMembersSuccess();
-            }
-		});
-		
-		// 移除群成员
-		JMessage.socket.on('removeGroupMembers', function(data){
-			data = JSON.parse(data);
-			if(data.content){
-				//JMessage.removeGroupMembersSuccess();
-			} else if(data.error) {
-				JMessage.removeGroupMembersFail(data.error.code, data.error.message);
-			} else {
-                JMessage.removeGroupMembersSuccess();
-            }
-		});
-		
-		// 退出群
-		JMessage.socket.on('exitGroup', function(data){
-			data = JSON.parse(data);
-			if(data.content){
-				//JMessage.exitGroupSuccess();
-			} else if(data.error) {
-				JMessage.exitGroupFail(data.error.code, data.error.message);
-			} else {  
-				JMessage.exitGroupSuccess();
-            }
-		});
-		
-		// 获取群组列表
-		JMessage.socket.on('getGroupList', function(data){
-			data = JSON.parse(data);
-			if(data.content){
-				JMessage.getGroupListSuccess(data.content);
-			} else if(data.error) {
-				JMessage.getGroupListFail(data.error.code, data.error.message);
-			}
-		});
-		
-		// 更新群组信息
-		JMessage.socket.on('updateGroupInfo', function(data){
-			data = JSON.parse(data);
-			if(data.content){
-				JMessage.updateGroupInfoSuccess(data.content);
-			} else if(data.error) {
-				JMessage.updateGroupInfoFail(data.error.code, data.error.message);
-			}
-		});
-		
 
-		
 	   return JMessage;
 })();

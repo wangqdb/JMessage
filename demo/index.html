@@ -3,16 +3,26 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>JMessage Web版</title>
+
+<!-- --------------------- jmessage sdk 文件 --------------------->
+<script type="text/javascript" src="./js/jmessage-1.0.0.js"></script>  
+
+<!-- --------------------   开发者自定义样式及脚本   ------------------- -->
 <link rel="stylesheet" type="text/css" href="./css/webim.css" />
-<link rel="stylesheet" type="text/css" href="./css/bootstrap.css" />
+<link rel="stylesheet" type="text/css" href="./css/bootstrap.css"/>
+<script type="text/javascript" src="./js/jquery.js"></script>
+<script type="text/javascript" src="./js/bootstrap.js"></script>
+<script type="text/javascript" src="./js/webim.js"></script>
+<!-- --------------------   开发者自定义样式及脚本   ------------------- -->
+
 </head>
 <body style="background-image:url('./img/bg/imbg003.png') ;background-attachment:fixed;background-repeat:no-repeat;background-size:cover;-moz-background-size:cover;-webkit-background-size:cover;">
 
 	<div class="container" id="loginPanel" style="width:300px;">
         <h3 class="form-signin-heading">JMessage</h3><br/>
-        <input type="text" name="user_name" id="user_name" class="form-control" placeholder="用户名" required autofocus/>
-        <input type="password" name="password" id="password" class="form-control" placeholder="密 码" />
-        <button class="btn btn-lg btn-primary btn-block" id="login_submit">进入聊天</button>
+        <input type="text" name="username" id="username" class="form-control" placeholder="请输入用户名" required autofocus/>
+        <input type="password" name="password" id="password" class="form-control" placeholder="请输入密码" />
+        <button class="btn btn-lg btn-primary btn-block" onclick="login();">进入聊天</button>
     </div>
     
     <div id="waitLoginmodal" style="display:none;margin:0 auto;width:400px;" class="container">
@@ -47,9 +57,9 @@
 			</div>
 			<div id="leftmiddle">
   				<ul class="nav nav-tabs nav-justified">
-					<li role="presentation" class="active"><a id="conversionTab" class="im-conversion-tab" >会话<span class="badge"></span></a></li>
-  					<li role="presentation"><a id="friendsTab" class="im-friend-tab" >好友</a></li>
-  					<li role="presentation"><a id="groupsTab" class="im-group-tab">群组</a></li>
+					<li role="presentation" class="active"><a id="conversionTab" class="im-conversion-tab" onclick="showConversionTab();">会话<span class="badge"></span></a></li>
+  					<li role="presentation"><a id="friendsTab" class="im-friend-tab" onclick="showFriendsTab();">好友</a></li>
+  					<li role="presentation"><a id="groupsTab" class="im-group-tab" onclick="showGroupTab();">群组</a></li>
 				</ul>
 				<!-- <ul class="nav nav-tabs nav-justified">
   					<li role="presentation">
@@ -62,7 +72,7 @@
 				    </li>
 				</ul> -->
 			</div>
-			<div id="conversionlist" style="height: 450px; overflow-y: auto; overflow-x: auto; background-image: url('./img/bg/tabbg.jpg')"></div>
+			<div id="conversionlist" style="height: 450px; overflow-y: auto; overflow-x: auto; /* background-image: url('./img/bg/tabbg.jpg') */"></div>
 			<div id="contractlist" style="height: 450px; overflow-y: auto; overflow-x: auto;  display:none;"></div>
 			<div id="grouplist" style="height: 450px; overflow-y: auto; overflow-x: auto; display:none;"></div>
 		</div>
@@ -270,6 +280,7 @@
 				</div>
 		</div>
 		
+		<!--  
 		<div id="startNewChatModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog"
 				aria-hidden="true" data-backdrop="true">
 				<div class="modal-dialog modal-sm">
@@ -338,7 +349,7 @@
 					</div>
 				</div>
 		</div>
-		
+		-->
 		<div id="showGroupMemberDetailInfoModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog"
 				aria-hidden="true" data-backdrop="true">
 				<div class="modal-dialog modal-sm">
@@ -364,11 +375,6 @@
 		</div>
 
 	</div> 
-	
-	
-<script type="text/javascript" src="./js/bootstrap.js"></script>
-<script type="text/javascript" src="./js/jmessage-1.0.0.js"></script>  <!-- jmessage sdk -->
-<script type="text/javascript" src="./js/webim.js"></script>  <!-- im logic js -->
 
 </body>
 </html>

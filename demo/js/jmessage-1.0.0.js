@@ -376,24 +376,23 @@ if(is.ua.indexOf('gecko')>=0){is.ie=is.ns=false;is.gecko=true;}
 
 /* ----- Load Scripts ---------*/
 var scriptResList = [
-     './jquery.js',
-     './ajaxfileupload.js'
+        './js/jquery.js',
+        './js/ajaxfileupload.js'
      ];
 
 var loadScript = function(scriptResList){
-	var head= document.getElementsByTagName('head')[0]; 
-	if (scriptResList instanceof Array) {
-		var length = scriptResList.length;
-		for(var i=0; i<length; i++){
-			var script= document.createElement('script'); 
-			script.type= 'text/javascript';
-			script.src= scriptResList[i]; 
-			head.appendChild(script);
-		}
-	}
+    var head= document.getElementsByTagName('head')[0]; 
+    if (scriptResList instanceof Array) {
+        var length = scriptResList.length;
+        for(var i=0; i<length; i++){
+            var script= document.createElement('script'); 
+            script.type= 'text/javascript';
+            script.src= scriptResList[i]; 
+            head.appendChild(script);
+        }
+    }
 };
 loadScript(scriptResList);
-
 /*---  JMessage JS SDK Define  -----*/
 
 JMessage = (function() {
@@ -404,9 +403,7 @@ JMessage = (function() {
 	   //JMessage.url = 'http://webchatserver.im.jpush.cn:9092';
 	   JMessage.QiNiuMediaUrl = 'http://jpushim.qiniudn.com/';
 	   JMessage.UpYunVoiceMediaUrl = 'http://cvoice.b0.upaiyun.com/';
-	   JMessage.UpYunImageMediaUrl = 'http://cimage.b0.upaiyun.com/'; 	  
-	   JMessage.MsgSequence = 0; // 消息计数器
-	   JMessage.MsgQuene = {};   // 消息队列，保存未发送成功的消息
+	   JMessage.UpYunImageMediaUrl = 'http://cimage.b0.upaiyun.com/';
 	   
 	   JMessage.connect = function() {
 		   if(window.WebSocket){
@@ -705,15 +702,27 @@ JMessage = (function() {
 		/*---------------------------------- 定义下行业务事件 -----------------------------*/
 		// 连接成功
 		JMessage.socket.on('onConnected', function(){
-			JMessage.connected();
+			if(JMessage.connected!=undefined){    
+                JMessage.connected();
+            } else {
+                console.log('JMessage.connected处理函数未配置');
+            }
 		});
 		
 		// 连接断开
 		JMessage.socket.on('disconnect', function(){
-			JMessage.disconnected();
+			if(JMessage.disconnected!=undefined){
+                JMessage.disconnected();
+            } else {
+                console.log('JMessage.disconnected处理函数未配置');
+            }
 		});
 		JMessage.socket.on('onDisconnected', function(){
-			JMessage.disconnected();
+			if(JMessage.disconnected!=undefined){
+                JMessage.disconnected();
+            } else {
+                console.log('JMessage.disconnected处理函数未配置');
+            }
 		});
 		
 		// SDK 配置
@@ -722,9 +731,17 @@ JMessage = (function() {
 			if(data.content){
 				//JMessage.ready();
 			} else if(data.error) {
-				JMessage.error(data.error.code, data.error.message);
+                if(JMessage.error!=undefined){
+				    JMessage.error(data.error.code, data.error.message);
+                } else {
+                    console.log('JMessage.error处理函数未配置');
+                }
 			} else {
-                JMessage.ready();
+                if(JMessage.ready!=undefined){
+                    JMessage.ready();
+                } else {
+                    console.log('JMessage.ready处理函数未配置');
+                }
             }
 		});
 		
@@ -734,9 +751,17 @@ JMessage = (function() {
 			if(data.content){
 				//JMessage.loginSuccess();
 			} else if(data.error) {
-				JMessage.loginFail(data.error.code, data.error.message);
-			} else {
+                if(JMessage.loginFail!=undefined){
+				    JMessage.loginFail(data.error.code, data.error.message);
+			    } else {
+                    console.log('JMessage login fail处理函数未配置');
+                }
+            } else {
+		if(JMessage.loginSuccess!=undefined){
                 JMessage.loginSuccess();
+		} else {
+			console.log('JMessage login success处理函数未配置');		
+		}
             }
 		});
 		
@@ -744,9 +769,17 @@ JMessage = (function() {
 		JMessage.socket.on('getUserInfo', function(data){
 			data = JSON.parse(data);
 			if(data.content){
-				JMessage.getUserInfoSuccess(data.content);
+				if(JMessage.getUserInfoSuccess!=undefined){
+					JMessage.getUserInfoSuccess(data.content);
+				} else {
+					console.log('JMessage getUserInfo success处理函数未配置');
+				}
 			} else if(data.error) {
-				JMessage.getUserInfoFail(data.error.code, data.error.message);
+				if(JMessage.getUserInfoFail!=undefined){
+					JMessage.getUserInfoFail(data.error.code, data.error.message);
+				} else {
+					console.log('JMessage getUserInfo fail处理函数未处理');
+				}
 			}
 		});
 		
@@ -814,9 +847,17 @@ JMessage = (function() {
 			if(data.content){
 			    //JMessage.sendTextMessageSuccess();
             } else if(data.error) {
-				JMessage.sendTextMessageFail(data.error.code, data.error.message);
+				if(JMessage.sendTextMessageFail!=undefined){
+					JMessage.sendTextMessageFail(data.error.code, data.error.message);
+				} else {
+					console.log('JMessage sendTextMessage fail处理函数未配置');
+				}
 			} else {
-			    JMessage.sendTextMessageSuccess();
+				if(JMessage.sendTextMessageSuccess!=undefined){
+				    JMessage.sendTextMessageSuccess();
+				} else {
+					console.log('JMessage sendTextMessage success处理函数未配置');
+				}
             }
 		});
 		
@@ -824,9 +865,17 @@ JMessage = (function() {
 		JMessage.socket.on('createGroup', function(data){
 			data = JSON.parse(data);
 			if(data.content){
-				JMessage.createGroupSuccess(data.content);
+				if(JMessage.createGroupSuccess!=undefined){
+					JMessage.createGroupSuccess(data.content);
+				} else {
+					console.log('JMessage createGroup success处理函数未配置');
+				}
 			} else if(data.error) {
-				JMessage.createGroupFail(data.error.code, data.error.message);
+				if(JMessage.createGroupFail!=undefined){
+					JMessage.createGroupFail(data.error.code, data.error.message);
+				} else {
+					console.log('JMessage createGroup fail处理函数未配置');
+				}
 			}
 		});
 		
@@ -834,9 +883,17 @@ JMessage = (function() {
 		JMessage.socket.on('getGroupInfo', function(data){
 			data = JSON.parse(data);
 			if(data.content){
-				JMessage.getGroupInfoSuccess(data.content);
+				if(JMessage.getGroupInfoSuccess!=undefined){
+					JMessage.getGroupInfoSuccess(data.content);
+				} else {
+					console.log('JMessage getGroupInfo success处理函数未配置');
+				}
 			} else if(data.error) {
-				JMessage.getGroupInfoFail(data.error.code, data.error.message);
+				if(JMessage.getGroupInfoFail!=undefined){
+					JMessage.getGroupInfoFail(data.error.code, data.error.message);
+				} else {
+					console.log('JMessage getGroupInfo fail处理函数未配置');
+				}	 
 			}
 		});
 		
@@ -846,9 +903,17 @@ JMessage = (function() {
 			if(data.content){
 				//JMessage.addGroupMembersSuccess();
 			} else if(data.error) {
-				JMessage.addGroupMembersFail(data.error.code, data.error.message);
+				if(JMessage.addGroupMembersFail!=undefined){
+					JMessage.addGroupMembersFail(data.error.code, data.error.message);
+				} else {
+					console.log('JMessage addGroupMembers fail处理函数未配置');
+				}
 			} else {
-				JMessage.addGroupMembersSuccess();
+				if(JMessage.addGroupMembersSuccess!=undefined){
+					JMessage.addGroupMembersSuccess();
+				} else {
+					console.log('JMessage addGroupMembers success处理函数未配置');
+				}
             }
 		});
 		
@@ -858,9 +923,17 @@ JMessage = (function() {
 			if(data.content){
 				//JMessage.removeGroupMembersSuccess();
 			} else if(data.error) {
-				JMessage.removeGroupMembersFail(data.error.code, data.error.message);
+				if(JMessage.removeGroupMembersFail!=undefined){
+					JMessage.removeGroupMembersFail(data.error.code, data.error.message);
+				} else {
+					console.log('JMessage removeGroupMembers fail处理函数未配置');
+				}
 			} else {
-                JMessage.removeGroupMembersSuccess();
+			if(JMessage.removeGroupMembersSuccess!=undefined){
+ 	               	JMessage.removeGroupMembersSuccess();
+			} else {
+				console.log('JMessage removeGroupMembers success处理函数未配置');
+			}
             }
 		});
 		
@@ -870,9 +943,17 @@ JMessage = (function() {
 			if(data.content){
 				//JMessage.exitGroupSuccess();
 			} else if(data.error) {
-				JMessage.exitGroupFail(data.error.code, data.error.message);
-			} else {  
-				JMessage.exitGroupSuccess();
+				if(JMessage.exitGroupFail!=undefined){
+					JMessage.exitGroupFail(data.error.code, data.error.message);
+				} else {
+					console.log('JMessage exitGroup fail处理函数未配置');
+				}
+			} else {
+				if(JMessage.exitGroupSuccess!=undefined){  
+					JMessage.exitGroupSuccess();
+				} else {
+					console.log('JMessage exitGroup success处理函数未配置');
+				}
             }
 		});
 		
@@ -880,9 +961,17 @@ JMessage = (function() {
 		JMessage.socket.on('getGroupList', function(data){
 			data = JSON.parse(data);
 			if(data.content){
-				JMessage.getGroupListSuccess(data.content);
+				if(JMessage.getGroupListSuccess!=undefined){
+					JMessage.getGroupListSuccess(data.content);
+				} else {
+					console.log('JMessage getGroupList success处理函数未配置');
+				}
 			} else if(data.error) {
-				JMessage.getGroupListFail(data.error.code, data.error.message);
+				if(JMessage.getGroupListFail!=undefined){
+					JMessage.getGroupListFail(data.error.code, data.error.message);
+				} else {
+					console.log('JMessage getGroupList fail处理函数未配置');				
+				}
 			}
 		});
 		
@@ -890,9 +979,17 @@ JMessage = (function() {
 		JMessage.socket.on('updateGroupInfo', function(data){
 			data = JSON.parse(data);
 			if(data.content){
-				JMessage.updateGroupInfoSuccess(data.content);
+				if(JMessage.updateGroupInfoSuccess!=undefined){
+					JMessage.updateGroupInfoSuccess(data.content);
+				} else {
+					console.log('JMessage updateGroupInfo success处理函数未配置');			
+				}
 			} else if(data.error) {
-				JMessage.updateGroupInfoFail(data.error.code, data.error.message);
+				if(JMessage.updateGroupInfoFail!=undefined){
+					JMessage.updateGroupInfoFail(data.error.code, data.error.message);
+				} else {
+					console.log('JMessage updateGroupInfo fail处理函数未配置');
+				}
 			}
 		});
 		

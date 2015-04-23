@@ -30,7 +30,7 @@
 		JMessage.config({
 			appKey: '4f7aef34fb361292c566a1cd',   
 			timestamp: 'timestamp2',     
-			randomStr: 'randomStr3',
+			randomStr: '    df   123',
 			signature: 'signature4'
 		});
 	//};
@@ -154,7 +154,7 @@
 	var testAddGroupMembers = function(){
 		JMessage.addGroupMembers({
 			  groupId: 10003195,          
-			  memberUsernames:['p002', 'p003'],
+			  memberUsernames:[],
 			  success: function() {
 			  	  console.log('addGroupMember success');
 			  },

@@ -273,7 +273,7 @@ a:hover {
 	filter:alpha(opacity=60);-moz-opacity:0.6;-khtml-opacity:0.6;opacity:0.6; 
 } */
 
-.chat03_content_ul {
+.listUL {
 	text-align: left;
 	font-size: 12px;
 	color: #333;
@@ -283,7 +283,7 @@ a:hover {
 	resize: none;
 }
 
-.chat03_content_ul li {
+.listUL li {
 	padding: 5px 0px 5px 5px;
 	cursor: pointer;
 }
@@ -315,20 +315,7 @@ a:hover {
 	padding: 5px;
 	resize: none;
 }
-/* 
-.chat02_content textarea {
-	color: black;
-	border: medium none;
-	display: block;
-	font-weight:bold;
-	font-size: 16px;
-	width: 552px;
-	height: 50px;
-	overflow-y: auto;
-	padding: 5px;
-	resize: vertical;
-	background: rgba(255,255,255,0.1);
-} */
+
 
 .chat03_name {
 	color: #333;
