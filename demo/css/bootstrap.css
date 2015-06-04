@@ -3059,9 +3059,9 @@ fieldset[disabled] .btn-warning.active {
   background-color: #E71435;
 }
 .btn-danger {
-  color: #fff;
-  background-color: #d9534f;
-  border-color: #d43f3a;
+  color: #Fef5f8;
+  background-color: #ed5564;
+  border-color: #ed5564;
 }
 .btn-danger:hover,
 .btn-danger:focus,
@@ -4610,16 +4610,17 @@ a.label:focus {
 .badge {
   display: inline-block;
   min-width: 10px;
-  padding: 3px 7px;
+  padding: 3px 6px;
   font-size: 12px;
-  font-weight: bold;
   line-height: 1;
   color: #fff;
   text-align: center;
   white-space: nowrap;
   vertical-align: baseline;
-  background-color: #E71435;
+  background-color: #ED5763;
   border-radius: 10px;
+  position: absolute;
+  margin-left: -10px;
 }
 .badge:empty {
   display: none;

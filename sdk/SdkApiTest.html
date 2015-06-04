@@ -23,15 +23,19 @@
 <input type="button" value="单发图片消息" onclick="sendImageMessage();"/> 
 <input type="button" value="群发图片消息" onclick="sendGroupImageMessage();"/> 
 
-<script data-main="main" src="./jmessage-1.0.0.js"></script>
+<script src="./min/jquery.min.js"></script>
+<script src="./min/socket.io.min.js"></script>
+<script src="./jmessage-1.0.0.js"></script>
 <script type="text/javascript">
+
 	// config
-	//var testConfig = function(){
+	//var testConfig = function(_timestamp, _randomStr, _signature){
 		JMessage.config({
+            	debug: true,
 			appKey: '4f7aef34fb361292c566a1cd',   
-			timestamp: 'timestamp2',     
-			randomStr: '    df   123',
-			signature: 'signature4'
+			timestamp: '111',     
+			randomStr: '222',
+			signature: 'CDE6052A6A317D15694C189D5ACF2A79'
 		});
 	//};
 
@@ -64,7 +68,7 @@
 	// login
 	var testLogin = function(){
 		JMessage.login({
-			username: 'p001',
+			username: 'p002',
 			password: '1111',
 			success: function(){
 				console.log('login success');
@@ -154,7 +158,7 @@
 	var testAddGroupMembers = function(){
 		JMessage.addGroupMembers({
 			  groupId: 10003195,          
-			  memberUsernames:[],
+			  memberUsernames:['p002'],
 			  success: function() {
 			  	  console.log('addGroupMember success');
 			  },
