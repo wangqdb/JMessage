@@ -1,28 +1,29 @@
 /*
-* 
+*  JMessage SDK VERSION-1.0.0
 */
 JMessage = (function() {
-	   var JMessage = {};
-	   JMessage.version = '1.0';
-	   JMessage.appKey = '';
-	   JMessage.signature = '';
-	   JMessage.username;
-	   JMessage.password;
-	   JMessage.socket = '';
-        JMessage.debug = true;
-	   JMessage.rid = 201503;
-	   JMessage.isFirstLogin = true;
-	   JMessage.requestTimeOut = 10000;
-	   //JMessage.url = 'http://127.0.0.1:9092';
-	   //JMessage.httpServerUrl = 'http://127.0.0.1:9093';
-	   JMessage.url = 'http://webchatserver.im.jpush.cn:3000';
-	   JMessage.httpServerUrl = 'http://webchatserver.im.jpush.cn:80';
-	   JMessage.QiNiuMediaUrl = 'http://jpushim.qiniudn.com/';
-	   JMessage.UpYunVoiceMediaUrl = 'http://cvoice.b0.upaiyun.com/';
-	   JMessage.UpYunImageMediaUrl = 'http://cimage.b0.upaiyun.com/';
+	var JMessage = {};
+	JMessage.version = '1.0';
+	JMessage.appKey = '';
+	JMessage.signature = '';
+	JMessage.username;
+	JMessage.password;
+	JMessage.socket = '';
+     JMessage.debug = true;
+	JMessage.rid = 201503;
+	JMessage.isInited = false;
+	JMessage.isFirstLogin = true;
+	JMessage.requestTimeOut = 10000;
+	JMessage.url = 'http://127.0.0.1:9092';
+	JMessage.httpServerUrl = 'http://127.0.0.1:9093';
+	//JMessage.url = 'http://webchatserver.im.jpush.cn:3000';
+	//JMessage.httpServerUrl = 'http://webchatserver.im.jpush.cn:80';
+	JMessage.QiNiuMediaUrl = 'http://jpushim.qiniudn.com/';
+	JMessage.UpYunVoiceMediaUrl = 'http://cvoice.b0.upaiyun.com/';
+	JMessage.UpYunImageMediaUrl = 'http://cimage.b0.upaiyun.com/';
 	   
-	   JMessage.method = {
-	   	CONNECT: "connect",
+	JMessage.method = {
+	  	CONNECT: "connect",
 		DISCONNECT: "disconnect",
 		HEARTBEAT: "heartbeat",
 		INFO_NOTIFICATION: "info.notification",
@@ -43,9 +44,9 @@ JMessage = (function() {
 		GROUPINFO_UPDATE: "groupInfo.update",
 		GROUP_EXIT: "group.exit",
 		GROUPLIST_GET: "groupList.get"
-	   };
-
-	   JMessage.ERROR = {
+	};
+	
+	JMessage.ERROR = {
 	   	REQUEST_TIMEOUT: {
 	   		CODE: 872006,
 	   		MESSAGE: 'request timeout'
@@ -54,158 +55,193 @@ JMessage = (function() {
 	   		CODE: 872007,
 	   		MESSAGE: 'disconnect from im server'
 	   	}
-	   };
+	};
 
-	   // JMessage Message Quene
-	   JMessage.MessageQuene = {
+	// JMessage Message Quene
+	JMessage.MessageQuene = {
 	   	// rid -> message data
-	   };
+	};
 
-	   JMessage.RequestToTimeoutMap = {
+	JMessage.RequestToTimeoutMap = {
 	   	// rid -> request timeout func mark
-	   };
+	};
 
-	   JMessage.CallbackDeferCache = {
+	JMessage.CallbackDeferCache = {
 	   	// rid -> callback defer
-	   };
+	};
 
-	   // request rid
-	   JMessage.getRID = function(){
+	// request rid
+	JMessage.getRID = function(){
 		JMessage.rid ++;
 		if (JMessage.rid > 999999) {
 			JMessage.rid = 201503;
 		}
 		return JMessage.rid;
-	   };
+	};
 
-	   JMessage.getTrimStrValue = function(str){
-	   		if (typeof str == 'string') {
-	   			return str.replace(/^\s+|\s+$/g,"");
-	   		} else {
-	   			console.error('argument should be string');
-	   		}
-	   };
+	JMessage.getTrimStrValue = function(str){
+		if (typeof str == 'string') {
+			return str.replace(/^\s+|\s+$/g,"");
+		} else {
+			console.error('argument should be string');
+		}
+	};
 
-	   JMessage.addRequestTimeoutCallback = function(rid){
-	   		var timeoutMark = setTimeout(function(){
-	   	    		JMessage.CallbackDeferCache[rid].reject(JMessage.ERROR.REQUEST_TIMEOUT.CODE,
-	   	    			JMessage.ERROR.REQUEST_TIMEOUT.MESSAGE, rid);
-	   	    		delete JMessage.CallbackDeferCache[rid];
+	JMessage.addRequestTimeoutCallback = function(rid){
+		var timeoutMark = setTimeout(function(){
+	   		JMessage.CallbackDeferCache[rid].reject(JMessage.ERROR.REQUEST_TIMEOUT.CODE,
+	   			JMessage.ERROR.REQUEST_TIMEOUT.MESSAGE, rid);
+	   			delete JMessage.CallbackDeferCache[rid];
 	   	    		delete JMessage.RequestToTimeoutMap[rid];
 	   	    	}, JMessage.requestTimeOut);
-			JMessage.RequestToTimeoutMap[rid] = timeoutMark;
-	   };
+		JMessage.RequestToTimeoutMap[rid] = timeoutMark;
+	};
 
-	   JMessage.removeRequestTimeoutCallback = function(rid){
-	   		clearTimeout(JMessage.RequestToTimeoutMap[rid]);
-			delete JMessage.RequestToTimeoutMap[rid];
-	   };
+	JMessage.removeRequestTimeoutCallback = function(rid){
+		clearTimeout(JMessage.RequestToTimeoutMap[rid]);
+		delete JMessage.RequestToTimeoutMap[rid];
+	};
 
-	   JMessage.addDeferCallback = function(rid, success, fail){
-	   		var callbackDefer = $.Deferred();
-			callbackDefer.done(success);
-			callbackDefer.fail(fail);
-			JMessage.CallbackDeferCache[rid] = callbackDefer;
-	   };
+	JMessage.addDeferCallback = function(rid, success, fail){
+		var callbackDefer = $.Deferred();
+		callbackDefer.done(success);
+		callbackDefer.fail(fail);
+		JMessage.CallbackDeferCache[rid] = callbackDefer;
+	};
 
-	   JMessage.reLogin = function(){
-		if(!JMessage.isFirstLogin){
-			JMessage.socket.emit('data', {
-				apiVersion: JMessage.version,
-				id: JMessage.getRID(),
-				method: JMessage.method.LOGIN,
-				params: {
-					signature: JMessage.signature,
-					appKey: JMessage.appKey,
-					username: JMessage.username,
-					password: JMessage.password,
-					isReLogin: 'true'
-				}
-			});
-	   	}
-	   };
-
-	   // resend message
-	   JMessage.resendMessage = function(options){
-	   	if (!options.hasOwnProperty('rid')||!options.hasOwnProperty('success')
-	   		||!options.hasOwnProperty('fail')) {
-			if (JMessage.debug) {
-				console.error('SDK Warn: JMessage.resendMessage info is not complete');
-			}
-			return;
-		} else if (typeof(options.rid)!='string'||typeof(options.success)!='function'
-			||typeof(options.fail)!='function'||options.success==undefined||options.fail==undefined) {
-			if (JMessage.debug) {
-				console.error('SDK Debug: JMessage.resendMessage info arguments type is wrong or value is empty');
-			}
-			return;
-		} else {
-			var rid = options.rid;
-		   	var message = JMessage.MessageQuene[rid];
-		   	JMessage.socket.emit('data', message);
-		   	JMessage.addDeferCallback(rid, options.success, options.fail);
-		   	JMessage.addRequestTimeoutCallback(rid);
-		}
-	   };
-
-	   JMessage.connect = function() {
-		   if(window.WebSocket){
-			   JMessage.socket = io(this.url, {
-				  'transports': ['websocket'],
-				  'reconnection': true,
-				  'autoConnect': true,
-				  'force new connection': true,
-				  'reconnectionDelay': 500,
-				  'reconnectionDelayMax': 1000,
-				  'timeout': 2000,
-				  'max reconnection attempts': 5
-		        });
-		   } else {
-			   JMessage.socket = io(this.url, {
+	JMessage.connect = function() {
+		/*JMessage.socket = io(this.url, {
 		   		'reconnection': true,
 				'autoConnect': true,
 				'force new connection': true,
 				'reconnectionDelay': 500,
 				'reconnectionDelayMax': 1000,
-				'timeout': 2000,
+				'timeout': 20000,
 				'max reconnection attempts': 5
-		   	   });
-		    }
-		};
-		JMessage.connect();
-		
-		/* ---------------------- ---- SDK 事件绑定 --------------------------------*/
-		JMessage.ready = function(func){
-			if (func instanceof Function) {
-				JMessage.ready = func;
-			} else {
-				if (JMessage.debug) {
-					console.error('SDK Warn: JMessage.ready argument should be function');
-				}
-			}
-		};
-		
-		JMessage.error = function(func){
-			if (func instanceof Function) {
-				JMessage.error = func;
-			} else {
-				if (JMessage.debug) {
-					console.error('SDK Warn: JMessage.error argument should be function');
-				}
-			}
-		};
+		   	});*/
+		if(window.WebSocket){
+			JMessage.socket = io(this.url, {
+				'transports': ['websocket'],
+				'reconnection': true,
+				'autoConnect': true,
+				'force new connection': true,
+				'reconnectionDelay': 500,
+				'reconnectionDelayMax': 1000,
+				'timeout': 20000,
+				'max reconnection attempts': 5
+		      });
+		} else {
+			JMessage.socket = io(this.url, {
+		   		'reconnection': true,
+				'autoConnect': true,
+				'force new connection': true,
+				'reconnectionDelay': 500,
+				'reconnectionDelayMax': 1000,
+				'timeout': 20000,
+				'max reconnection attempts': 5
+		   	});
+		}
+	};
 
-		JMessage.notification = function(func){
-			if (func instanceof Function) {
-				JMessage.notification = func;
-			} else {
+	/* -------------------------------------- SDK 事件绑定 --------------------------------------*/
+	// 网络连接
+     JMessage.onConnected = function(func){
+         	if(func instanceof Function){
+               	JMessage.connected = func;
+          	} else {
+          		if (JMessage.debug) {
+          			console.error('SDK Warn: JMessage.onConnected argument should be function');
+          		}
+          	}
+     	};
+
+     // 网络断开
+     	JMessage.onDisconnected = function(func){
+		if (func instanceof Function) {
+			JMessage.disconnected = func;
+		} else {
+			if (JMessage.debug) {
+				console.error('SDK Warn: JMessage.onDisconnected argument should be function');
+			}
+		}
+	};
+
+	JMessage.ready = function(func){
+		if (func instanceof Function) {
+			JMessage.ready = func;
+		} else {
+			if (JMessage.debug) {
+				console.error('SDK Warn: JMessage.ready argument should be function');
+			}
+		}
+	};
+		
+	JMessage.error = function(func){
+		if (func instanceof Function) {
+			JMessage.error = func;
+		} else {
+			if (JMessage.debug) {
+				console.error('SDK Warn: JMessage.error argument should be function');
+			}
+		}
+	};
+
+	JMessage.notification = function(func){
+		if (func instanceof Function) {
+			JMessage.notification = func;
+		} else {
+			if (JMessage.debug) {
+				console.error('SDK Warn: JMessage.notification argument should be function');
+			}
+		}
+	};
+	/* ----------------------------------------------------------------------------------------------- */
+
+	JMessage.init = function(){
+		isInited = true;
+		JMessage.connect();
+
+		JMessage.reLogin = function(){
+			if(!JMessage.isFirstLogin){
+				JMessage.socket.emit('data', {
+					apiVersion: JMessage.version,
+					id: JMessage.getRID(),
+					method: JMessage.method.LOGIN,
+					params: {
+						signature: JMessage.signature,
+						appKey: JMessage.appKey,
+						username: JMessage.username,
+						password: JMessage.password,
+						isReLogin: 'true'
+					}
+				});
+		   	}
+	     };
+
+		// resend message
+		JMessage.resendMessage = function(options){
+		  	if (!options.hasOwnProperty('rid')||!options.hasOwnProperty('success')
+		   		||!options.hasOwnProperty('fail')) {
 				if (JMessage.debug) {
-					console.error('SDK Warn: JMessage.notification argument should be function');
+					console.error('SDK Warn: JMessage.resendMessage info is not complete');
 				}
+				return;
+			} else if (typeof(options.rid)!='string'||typeof(options.success)!='function'
+				||typeof(options.fail)!='function'||options.success==undefined||options.fail==undefined) {
+				if (JMessage.debug) {
+					console.error('SDK Debug: JMessage.resendMessage info arguments type is wrong or value is empty');
+				}
+				return;
+			} else {
+				var rid = options.rid;
+			   	var message = JMessage.MessageQuene[rid];
+			   	JMessage.socket.emit('data', message);
+			   	JMessage.addDeferCallback(rid, options.success, options.fail);
+			   	JMessage.addRequestTimeoutCallback(rid);
 			}
 		};
 		
-	    /* -------------------------------  定义上行业务事件 -----------------------------*/
+		/* -------------------------------  定义上行业务事件 -----------------------------*/
 		
 		// 应用配置
 		JMessage.config = function(options){
@@ -255,29 +291,6 @@ JMessage = (function() {
 				JMessage.addRequestTimeoutCallback(rid);
 			}
 		};
-	
-        // 网络连接
-        JMessage.onConnected = function(func){
-            if(func instanceof Function){
-                JMessage.connected = func;
-            } else {
-            	if (JMessage.debug) {
-            		console.error('SDK Warn: JMessage.onConnected argument should be function');
-            	}
-            }
-        };
-
-        // 网络断开
-        JMessage.onDisconnected = function(func){
-			if (func instanceof Function) {
-				JMessage.disconnected = func;
-			} else {
-				if (JMessage.debug) {
-					console.error('SDK Warn: JMessage.onDisconnected argument should be function');
-				}
-			}
-		};
-
 
 		// 用户登陆
 		JMessage.login = function(options){
@@ -431,8 +444,8 @@ JMessage = (function() {
 			}
 		};
 		
-        // 发送图片消息
-        JMessage.sendImageMessage = function(options){
+           // 发送图片消息
+           JMessage.sendImageMessage = function(options){
 			if (!options.hasOwnProperty('targetId')||!options.hasOwnProperty('targetType')
 				||!options.hasOwnProperty('fileId')||!options.hasOwnProperty('success')
 				||!options.hasOwnProperty('fail')) {
@@ -822,6 +835,7 @@ JMessage = (function() {
 		/*---------------------------------- 定义下行业务事件 -----------------------------*/
 		// 连接成功
 		JMessage.socket.on('onConnected', function(){
+			console.log('init success');
 			if(JMessage.connected!=undefined){
 	                JMessage.connected();
 	           } else {
@@ -834,11 +848,10 @@ JMessage = (function() {
 		// reconnect
 		JMessage.socket.on('reconnecting', function(reconnectCount){
 			console.log('reconnect count: '+reconnectCount);
-			if(reconnectCount>1){
+			/*if(reconnectCount>1){
 				console.log('connect exception, please login again');
-				window.location.reload();
-				//JMessage.connect();
-			}
+				//window.location.reload();
+			}*/
 			if(JMessage.debug){
 				console.info('reconnecting......');
 			}
@@ -855,7 +868,7 @@ JMessage = (function() {
 
 		// 连接断开
 		JMessage.socket.on('disconnect', function(){
-			JMessage.reLogin();
+			//JMessage.reLogin();
 			if(JMessage.disconnected!=undefined){
                 	JMessage.disconnected();
             	} else {
@@ -1251,6 +1264,6 @@ JMessage = (function() {
 					console.log('undefined event');
 			} // end of switch
 		});
-
-	   return JMessage;
+	};
+	return JMessage;
 })();

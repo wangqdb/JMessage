@@ -8,20 +8,19 @@
 <title>JChat</title>
 
 <!-- --------------------   开发者自定义样式及脚本   ------------------- -->
-<link rel="stylesheet" type="text/css" href="./css/jchat.css?t=3" />
+<link rel="stylesheet" type="text/css" href="./css/jchat.css?t=4" />
 <link rel="stylesheet" type="text/css" href="./css/bootstrap.css"/>
 <script type="text/javascript" src="./js/jquery.min.js"></script>
 <script type="text/javascript" src="./js/min/ajaxfileupload.min.js"></script>
-<!-- <script type="text/javascript" src="./js/socket.io.min.js"></script> -->
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
-<script type="text/javascript" src="./js/jmessage-1.0.0.js?t=5"></script>
+<script type="text/javascript" src="./js/min/socket.io-1.3.5.min.js"></script>
+<script type="text/javascript" src="./js/jmessage-1.0.0.js?t=8"></script>
 <script type="text/javascript" src="./js/perfect-scrollbar.min.js"></script>
-<!-- <script type="text/javascript" src="http://7xjfat.dl1.z0.glb.clouddn.com/jquery.min.js"></script>
-<script type="text/javascript" src="http://7xjfat.dl1.z0.glb.clouddn.com/ajaxfileupload.min.js"></script>
-<script type="text/javascript" src="http://7xjfat.dl1.z0.glb.clouddn.com/socket.io.min.js"></script>
-<script type="text/javascript" src="http://7xjfat.dl1.z0.glb.clouddn.com/jmessage-1.0.0.min.js?t=4"></script>
-<script type="text/javascript" src="http://7xjfat.dl1.z0.glb.clouddn.com/perfect-scrollbar.min.js"></script> -->
-<script type="text/javascript" src="./js/jchat.js?t=6"></script>
+<!-- <script type="text/javascript" src="http://web.file.jpush.cn/jquery.min.js"></script>
+<script type="text/javascript" src="http://web.file.jpush.cn/ajaxfileupload.min.js"></script>
+<script type="text/javascript" src="http://web.file.jpush.cn/socket.io.min.js"></script>
+<script type="text/javascript" src="http://web.file.jpush.cn/jmessage-1.0.0.min.js?t=4"></script>
+<script type="text/javascript" src="http://web.file.jpush.cn/perfect-scrollbar.min.js"></script> -->
+<script type="text/javascript" src="./js/jchat.js?t=9"></script>
 <!-- --------------------   开发者自定义样式及脚本   ------------------- -->
 
 </head>
@@ -37,9 +36,10 @@
 
 	<div class="content" id="content" style="display: none">
 		<div class="leftcontact" id="leftcontact">
+			<div class="fake-border"></div>
 			<div id="headerimg" class="leftheader">
-				<div class="row">
-  					<div class="col-md-4">
+				<div style="width:273px;">
+  					<div style="display: inline-block;">
   						<p class="left-func-img"></p>
   						<ul class="func-ul hide"> 
   						   <p style="height:20px;"></p>
@@ -47,8 +47,8 @@
 					        <li><a href="javascript:void(0);" onclick="logout();">退出登陆</a></li>
 					    </ul>
   					</div>
-  					<div class="col-md-4"><p class="login-user" style="text-align:center"></p></div>
-  					<div class="col-md-4"><p class="right-func-img" onclick="addMemberToChat();"></p></div>
+  					<div style="display: inline-block; margin-left: 30px; position: relative; top: -5px;"><p class="login-user" style="text-align:center"></p></div>
+  					<div style="display: inline-block; margin-left: 35px;"><p class="right-func-img" onclick="addMemberToChat();"></p></div>
 				</div>
 			</div>
 			<div id="leftmiddle" class="leftmiddle">
@@ -62,9 +62,9 @@
 				</div>
 				<p class="search-decoration"></p>
 			</div>
-			<div id="conversionlist" style="height: 461px; overflow-y: auto; overflow-x: auto; position:relative;"></div>
-			<div id="contractlist" style="height: 461px;  display:none;">
-				<p class="group-mark"><span class="caret"></span>群组</p>
+			<div id="conversionlist" style="height: 461px; overflow-y: auto; overflow-x: auto; position:relative; background: #f1f5f8; -webkit-border-bottom-left-radius: 13px; -moz-border-bottom-left-radius: 13px;border-bottom-left-radius: 13px;"></div>
+			<div id="contractlist" style="height: 461px;  display:none; background: #f1f5f8; -webkit-border-bottom-left-radius: 13px; -moz-border-bottom-left-radius: 13px;border-bottom-left-radius: 13px;">
+				<p class="group-mark" onclick="toggleGroupList();"><span class="caret"></span>群组</p>
 				<div id="grouplist"></div>
 			</div>
 		</div>
@@ -75,11 +75,11 @@
 			<!-- 群组信息显示面板  -->
 			<div id="groupInfo" class="chat01" style="display:none;">
 				<div class="chat01_title">
-					<div class="row">
-						<div class="col-md-2" style="">
+					<div style="width:706px;">
+						<div style="margin-left: 60px; width: 150px; display: inline-block;">
 							<p class="back-to-chat" onclick="backToChat();"></p>
 						</div>
-	  					<div class="col-md-4 talkTo-div"><p class="group-info-title">聊天信息</p></div>
+	  					<div class="talkTo-div" style="width: 200px; display: inline-block;"><p class="group-info-title">聊天信息</p></div>
   					</div>
 				</div>
 				<div id="groupMemberInfoPanel" class="groupinfo_content">
@@ -105,10 +105,10 @@
 			<!--  end of group info  -->
 			<div id="chat01" class="chat01">
 				<div class="chat01_title">
-					<div class="row">
-						<div class="col-md-2" style="margin-left:60px;"></div>
-  						<div class="col-md-4 talkTo-div"><p class="talkTo"></p></div>
-  						<div class="col-md-1 chat-group-button-div"><p class="chat-group-button" onclick="showGroupInfo();"/></div>
+					<div style="width:706px;">
+						<div style="margin-left: 60px; width: 150px; display: inline-block;"></div>
+  						<div class="talkTo-div" style="width: 200px; display: inline-block;"><p class="talkTo"></p></div>
+  						<div class="chat-group-button-div" style="display: inline-block; width: 100px;"><p class="chat-group-button" onclick="showGroupInfo();"/></div>
 					</div>
 				</div>
 				<div id="null-page" class="welcome_content" style="text-align:center;">
@@ -118,18 +118,18 @@
 
 			<div class="chat02">
 				<div class="chat02_title">
-					<div class="row">
-					  <div class="col-md-4">
+					<div style="width: 705px; display: inline-block; position: relative; top: -15px;">
+					  <div style="width: 500px; display: inline-block; position: relative; left: 20px;">
 					  	<textarea id="talkInputId" name="talkInputId" class="talkInputId" placeholder=" 输入消息 ......"></textarea>
 					  </div>
-					  <div class="col-md-2" style="margin-left: 210px;">
+					  <div style="width: 50px; display: inline-block; position: relative; top: -15px; left: 20px;">
 					  	<button type="button" class="btn-send" onclick="sendText();">发送</button>
 					  </div>
-					  <div class="col-md-1" style="margin-left:20px;">
+					  <div style="display: inline-block; width: 30px; height: 30px; position: relative; top: 13px; left: 20px;">
 					  	<p class="pic-send"></p>
-					  	<input type="file" id="myfile" name="myfile" class="myfile" accept="image/*" onchange="sendPic();" style="opacity:0;">
+					  	<input type="file" id="myfile" name="myfile" class="myfile" accept="image/*" onchange="sendPic();" style="opacity:0;position: relative;top: -27px;left: -2px;width: 40px;">
 					  </div>
-					  <div class="col-md-8"><p class="input-decoration"></p></div>
+					  <div style="width: 670px; display: inline-block;"><p class="input-decoration"></p></div>
 					  </div>
 					  </div>
 				</div>
@@ -156,7 +156,7 @@
    		 		<p class="close-modal" onclick="closeModal();"></p><br/>
 	        		<p class="avator img-circle"></p>
   				<p id="cName" class="cName">p003</p><br/>
-				<span class="nickname-label">昵称：</span><p id="cNickName" class="cNickName"></p><br/>
+				<span class="nickname-label">备注名：</span><p id="cNickName" class="cNickName"></p><br/>
 				<p class="contractor-info-decoration"></p>
 				<span class="region-label">地区：</span><p id="cRegin" class="cRegion"></p><br/>
 				<span class="signature-label">个性签名：</span><p id="cSignature" class="cSignature"></p><br/>
@@ -169,7 +169,7 @@
 
     		<div id="selfInfoModal" class="modalDialog">
    		 	<div>
-   		 		<p class="modal-title"></p>
+   		 		<p class="modal-title">个人信息</p>
    		 		<p class="close-modal" onclick="closeModal();"></p><br/>
 	        		<p class="avator img-circle"></p>
   				<p id="cName" class="cName">p003</p><br/>
@@ -194,7 +194,9 @@
 		<div id="originImgModal" class="originImgModalDialog">
    		 	<div>
    		 		<p class="close-modal" onclick="closeModal();"></p><br/>
+   		 		<!-- <div class="pic-left-arrow" onclick="prePicPreview();"></div> -->
    		 		<img id="originImg"/>
+   		 		<!-- <div class="pic-right-arrow" onclick="nextPicPreview();"></div> -->
    		 	</div>
    		</div>
 	
@@ -203,14 +205,16 @@
    		 		<p class="modal-title">发起聊天</p>
    		 		<p class="close-modal" onclick="closeStartNewChatModal();"></p><br/>
    		 		<div style="margin: 0 auto; padding-top:10px;">
-   		 			<div class="start-new-chat-modal-middle">
-   		 				<input type="text" name="s_username" id="s_username" class="s_username" placeholder="输入用户名" autofocus/><br/>
-   		 				<p class="addNewMember" onclick="addUserToChatList();"></p>
+   		 			<div style="border-left: 6px solid rgb(197, 205, 208); z-index: 400; position: relative; left: -20px; padding-left: 20px;">
+	   		 			<div class="start-new-chat-modal-middle">
+	   		 				<input type="text" name="s_username" id="s_username" class="s_username" placeholder="输入用户名" autofocus/><br/>
+	   		 				<p class="addNewMember" onclick="addUserToChatList();"></p>
+	   		 			</div>
+	   		 			<p class="start-new-chat-decoration"></p>
+	   		 			<div class="start-new-chat-list-div">
+	   		 			</div>
+	   		 			<p class="start-new-chat-decoration"></p>
    		 			</div>
-   		 			<p class="start-new-chat-decoration"></p>
-   		 			<div class="start-new-chat-list-div">
-   		 			</div>
-   		 			<p class="start-new-chat-decoration"></p>
    		 			<div style="width:160px; margin: 0 auto; margin-top:40px;">
 						<button id="startChat" class="btn btn-lg btn-primary btn-block" onclick="startNewChatConversion();">确定</button>
 					</div>
@@ -223,14 +227,16 @@
    		 		<p class="modal-title">添加参与人</p>
    		 		<p class="close-modal" onclick="closeAddNewGroupMemberModal();"></p><br/>
    		 		<div style="margin: 0 auto; padding-top:10px;">
-   		 			<div class="start-new-chat-modal-middle">
-   		 				<input type="text" name="a_username" id="a_username" class="s_username" placeholder="输入用户名" autofocus/><br/>
-   		 				<p class="addNewMember" onclick="addUserToGroupMemberList();"></p>
-   		 			</div>
-   		 			<p class="start-new-chat-decoration"></p>
-   		 			<div class="add-new-group-member-list-div">
-   		 			</div>
-   		 			<p class="start-new-chat-decoration"></p>
+   		 			<div style="border-left: 6px solid rgb(197, 205, 208); z-index: 400; position: relative; left: -20px; padding-left: 20px;">
+	   		 			<div class="start-new-chat-modal-middle">
+	   		 				<input type="text" name="a_username" id="a_username" class="s_username" placeholder="输入用户名" autofocus/><br/>
+	   		 				<p class="addNewMember" onclick="addUserToGroupMemberList();"></p>
+	   		 			</div>
+	   		 			<p class="add-new-groupmember-decoration"></p>
+	   		 			<div class="add-new-group-member-list-div">
+	   		 			</div>
+	   		 			<p class="add-new-groupmember-decoration"></p>
+	   		 		</div>
    		 			<div style="width:160px; margin: 0 auto; margin-top:40px;">
 						<button id="startChat" class="btn btn-lg btn-primary btn-block" onclick="addNewGroupMembers();">确定</button>
 					</div>

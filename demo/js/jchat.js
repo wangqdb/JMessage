@@ -16,9 +16,10 @@ var isSingleOrGroup = "single";  //  标识是单聊还是群聊
 var isFirstLogin = true;
 var isNeedUpdateGroupName = false;
 var tmpGroupName = null;
+var curPreviewPic = null;
 var debug = true;
-var JMessage_http_server_url = 'http://webchatserver.im.jpush.cn:80/signature';
-//var JMessage_http_server_url = 'http://127.0.0.1:9093/signature';
+//var JMessage_http_server_url = 'http://webchatserver.im.jpush.cn:80/signature';
+var JMessage_http_server_url = 'http://127.0.0.1:9093/signature';
 /* -------------- 自定义数据结构存储 ------------------- */
 var IM = {
 	contacts: {
@@ -39,6 +40,9 @@ var IM = {
 };
 
 /* ----------------JMessage event------------------ */
+
+JMessage.init();
+
 JMessage.ready(function(){
 	if(debug)
 		console.info('config ready');
@@ -124,8 +128,9 @@ Array.prototype.remove = function(val) {
 /* ------------- JChat logic ------------------ */
 // 用户登陆
 var login = function(){
-	var username = $('#username').val().trim();
-	var password = $('#password').val().trim();
+	var beginTime = new Date();
+	var username = $.trim($('#username').val());
+	var password = $.trim($('#password').val());
 	if(username==''||username==undefined
 	    ||password==''||password==undefined){
 		$('#login-error-info').text('请输入用户名和密码');
@@ -144,6 +149,8 @@ var login = function(){
 				$('#login').text("登陆");
 				$('.login-user').html(username);
 				loginSuccess();
+				var endTime = new Date();
+				console.log('--- client login time --- '+ (endTime-beginTime));
 			},
 			fail: function(code, message){
 				if(debug)
@@ -225,7 +232,7 @@ var getGroupListSuccess = function(response){
 		IM.groups[gid] = groupObject;
 		if('未命名'==groupName){
 			var membersUsername = groupObject.membersUsername;
-			var _groupName = membersUsername.join(',');
+			var _groupName = membersUsername.slice(0,2).join(',');
 			addGroupToList(gid, _groupName);
 		} else {
 			addGroupToList(gid, groupName);
@@ -273,6 +280,12 @@ var closeModal = function(){
 
 var closeStartNewChatModal = function(){
 	closeModal();
+	if($('.start-new-chat-decoration').css('display')=='block'){
+		$('.start-new-chat-decoration').css({"display":"none"});
+	}
+	if($('.add-new-groupmember-decoration').css('display')=='block'){
+		$('.add-new-groupmember-decoration').css({"display":"none"});
+	}
 	var divList = $('.start-new-chat-list-div div')
 	for(var i=0; i<divList.length; i++){
 		$(divList[i]).remove();
@@ -281,10 +294,20 @@ var closeStartNewChatModal = function(){
 
 var closeAddNewGroupMemberModal = function(){
 	closeModal();
+	if($('.start-new-chat-decoration').css('display')=='block'){
+		$('.start-new-chat-decoration').css({"display":"none"});
+	}
+	if($('.add-new-groupmember-decoration').css('display')=='block'){
+		$('.add-new-groupmember-decoration').css({"display":"none"});
+	}
 	var divList = $('.add-new-group-member-list-div div')
 	for(var i=0; i<divList.length; i++){
 		$(divList[i]).remove();
 	}
+};
+
+var toggleGroupList = function(){
+	$('#grouplistUL').slideToggle();
 };
 
 var showRegPanel = function(){
@@ -460,7 +483,7 @@ var showGroupChatDiv = function(chatGroupId) {
 	}
 	var group_name = $('li#'+chatGroupId).attr("displayName");
 	$('.'+talkToDiv).html(group_name);
-	Ps.initialize(document.getElementById("div"+chatGroupId));
+	//Ps.initialize(document.getElementById("div"+chatGroupId));
 };
 
 // 切换联系人聊天窗口div
@@ -572,7 +595,7 @@ var showGroupChat = function(li){
 	if(IM.beenRemovedGroups.hasOwnProperty(curChatGroupId)){
 		$('.chat-group-button-div').css({'display':'none'});
 	} else {
-		$('.chat-group-button-div').css({'display':'block'});
+		$('.chat-group-button-div').css({'display':'inline-block'});
 	}
 
 	curChatGroupId = Number(curChatGroupId);
@@ -624,7 +647,7 @@ var showContactChatDiv = function(chatUserId) {
 	}
 	var chatName = $('li#conversion-'+chatUserId).attr('username');
 	$('.'+talkToDiv).html(chatName);
-	Ps.initialize(document.getElementById("div"+chatUserId));
+	//Ps.initialize(document.getElementById("div"+chatUserId));
 };
 
 // 对上一个群组的聊天窗口做隐藏处理
@@ -782,8 +805,10 @@ var appendMsgSendByMe = function(message, rid) {
 	var msgContentDiv;
 	if(isSingleOrGroup=='single'){
 		msgContentDiv = getContactChatDiv(curChatUserId);
+		updatePositionInConversionList(curChatUserId);
 	} else if(isSingleOrGroup=='group'){
 		msgContentDiv = getGroupChatDiv(curChatGroupId);
+		updatePositionInConversionList(curChatGroupId);
 	}
 	lineDiv.style.textAlign = "right";
 	var create = false;
@@ -817,8 +842,21 @@ function stopDefault(e) {
 document.onkeydown = function(event){
    var e = event || window.event || arguments.callee.caller.arguments[0];      
    if(loginStatus){
+   	if(e && e.keyCode==27){  // esc
+   		$('#originImgModal').css({"display":"none"});
+   	}    
    	if(e && e.keyCode==13){   // Enter按键
 	   	stopDefault(e);
+
+	   	if($('#startNewChatModal').css('display')=='block') {
+ 			addUserToChatList();
+ 			return;	
+	   	}
+	   	if($('#addNewGroupMemberModal').css('display')=='block'){
+	   		addUserToGroupMemberList();
+	   		return;
+	   	}
+
 	   	var content = document.getElementById('talkInputId').value;
 	   	var msgTime = getCurDateString();
 	   	if(content!=''){
@@ -1139,7 +1177,7 @@ var updateGroupNameInConversionList = function(id, name){
 	var gDom = $('#grouplistUL li#'+id);
 	gDom.attr('displayname', name);
 	if('未命名'==name){
-		name = IM.groups[id].membersUsername.join(',');
+		name = IM.groups[id].membersUsername.slice(0,2).join(',');
 	}
 	$('#grouplistUL li#'+id+' .contractor-display-style').text(name);
 	$('#conversion-'+id+' .contractor-display-style').text(name);
@@ -1185,7 +1223,7 @@ var addGroupToConversionList = function(id ,name){
 		"class" : "contractor-display-style"
 	});
 	if('未命名'==name){
-		name = IM.groups[id].membersUsername.join(',');
+		name = IM.groups[id].membersUsername.slice(0,2).join(',');
 	}
 	spanelem.innerHTML = name;
 
@@ -1334,7 +1372,9 @@ var appendMsgSendByOthers = function(name, nickname, message, create_time, chatt
 			create = true;
 		}
 
-		updateUsernameToNickname(name, nickname);
+		if (nickname!=''&&nickname!=undefined) {
+			updateUsernameToNickname(name, nickname);
+		};
 		updateChatSessionTime(contactDivId);
 		updatePositionInConversionList(name);
 		msgContentDiv.appendChild(lineDiv);
@@ -1513,11 +1553,63 @@ var updatePositionInConversionList = function(name){
 	li.remove();
 };
 
+var prePicPreview = function(){
+	var id;
+	if(isSingleOrGroup=='single'){
+		id = "div"+curChatUserId;
+	} else {
+		id = "div"+curChatGroupId;
+	}
+	var curDiv = $('img[src="'+curPreviewPic+'"]').parents('div')[0];
+	var preDiv = $(curDiv).prev();
+	while(preDiv){
+		var length = preDiv.children('p3.chat-content-pic').length;
+		if(length==0) {
+			preDiv = $(preDiv).prev();
+			/*if(preDiv.length==0){
+				return;
+				alert('the first pic');
+			}*/
+		} else {
+			break;
+		}
+	}
+	var img = preDiv.children('p3.chat-content-pic').children('img');
+	showOriginImg(img[0]);
+};
+
+var nextPicPreview = function(){
+	var id;
+	if(isSingleOrGroup=='single'){
+		id = "div"+curChatUserId;
+	} else {
+		id = "div"+curChatGroupId;
+	}
+	var curDiv = $('img[src="'+curPreviewPic+'"]').parents('div')[0];
+	console.log('pic : '+curPreviewPic);
+	var preDiv = $(curDiv).next();
+	while(preDiv){
+		var length = preDiv.children('p3.chat-content-pic').length;
+		if(length==0){
+			preDiv = $(preDiv).next();
+			/*if(preDiv.length==0){
+				return;
+				alert('the last pic');
+			}*/
+		} else {
+			break;
+		}
+	}
+	var img = preDiv.children('p3.chat-content-pic').children('img');
+	showOriginImg(img[0]);
+};
+
 var getCurDateString = function(){
 	var timeMark = '上午';
 	var date = new Date();
 	var hour = date.getHours();
 	var minutes = date.getMinutes();
+	minutes =  (date.getMinutes()<10?'0':'')+minutes;
 	if(hour>12){
 		timeMark = '下午';
 		hour = hour-12;
@@ -1663,14 +1755,24 @@ var showEventNotification = function(data){
 
 var showOriginImg = function(img){
 	var src = img.src;
-	var originSrc = src.split('?');
+	curPreviewPic = src;
+	var qiniuOriginSrc = src.split('?');
+	var upyunOriginSrc = src.split('!');
+	var picSrc;
 	var infoSrc;
-	if(originSrc.length>0){           // qiniu
-		originSrc = originSrc[0];
-		infoSrc = originSrc+'?imageInfo';
-	} else {                              // upyun
-		originSrc = src.split('!')[0];
-		infoSrc = originSrc+'!webpicinfo';
+	if(qiniuOriginSrc.length>1){       // qiniu
+		picSrc = src.split('?')[0];
+		infoSrc = picSrc+'?imageInfo';
+	} else if (upyunOriginSrc.length>1) {    // upyun
+		picSrc = src.split('!')[0];
+		infoSrc = picSrc+'!webpicinfo';
+	} else {
+		picSrc = src;
+		if(src.indexOf('qiniu')>0){
+			infoSrc = src+'?imageInfo';
+		} else {
+			infoSrc = src+'!webpicinfo';
+		}
 	}
 	var screenHeight = window.screen.height-300;
 	var screenWidth = window.screen.width-300;
@@ -1693,14 +1795,14 @@ var showOriginImg = function(img){
 					picWidth = screenWidth;
 					picHeight = picHeight*ratio;
 				}
-				$('#originImg').attr('src', originSrc);
+				$('#originImg').attr('src', picSrc);
 				$('#originImg').css({
 					'width': picWidth,
 					'height':  picHeight
 				});
 				$('#originImgModal').css({'display':'block'});
 			} else {
-				$('#originImg').attr('src', originSrc);
+				$('#originImg').attr('src', picSrc);
 				$('#originImg').css({
 					'width': picWidth,
 					'height': picHeight
@@ -2166,6 +2268,9 @@ var addUserToChatList = function(){
 		success: function(response) {
 			if(debug)
 				console.info('userinfo: '+response);
+			if($('.start-new-chat-decoration').css('display')=='none'){
+				$('.start-new-chat-decoration').css({"display":"block"});
+			}
 			$('#s_username').val('');
 			var respData = JSON.parse(response);
 			addToIMContacts(respData);
@@ -2232,6 +2337,9 @@ var addUserToGroupMemberList = function(){
 		success: function(response) {
 			if(debug)
 				console.info('userinfo: '+response);
+			if($('.add-new-groupmember-decoration').css('display')=='none'){
+				$('.add-new-groupmember-decoration').css({"display":"block"});
+			}
 			$('#a_username').val('');
 			var respData = JSON.parse(response);
 			addToIMContacts(respData);
@@ -2294,11 +2402,12 @@ var startNewChatConversion = function(){
 		isSingleOrGroup = "single";
 		showConversionTab();
 		$('.'+talkToDiv).html(chatUserId);
-		$('#startNewChatModal').css({
-			"display": "none"
-		});
+		$('#startNewChatModal').css({"display": "none"});
+		if($('.start-new-chat-decoration').css('display')=='block'){
+			$('.start-new-chat-decoration').css({"display":"none"});
+		}
      } else if(length>1){
-		var _groupName = membersUsernameArray.join(',');
+		var _groupName = membersUsernameArray.slice(0,2).join(',');
      		JMessage.createGroup({
 		  	groupName: '未命名',
 		  	groupDescription: '测试建群',
@@ -2327,6 +2436,9 @@ var startNewChatConversion = function(){
 					success: function() {
 						if(debug)	
 							console.info('addGroupMember success');
+						if($('.start-new-chat-decoration').css('display')=='block'){
+							$('.start-new-chat-decoration').css({"display":"none"});
+						}
 						addGroupToConversionList(gid, name);
 						$('li#conversion-'+gid).css({"border-left": "6px solid #4081df"});
 						showConversionTab();
@@ -2362,7 +2474,7 @@ var startNewChatConversion = function(){
 		  	},
 		  	fail: function(code, message){
 		  		showErrorInfo(code);
-				if(debug)	
+				if(debug)
 					console.error('createGroup fail, code: '+code);
 		  	}
 		});
@@ -2382,6 +2494,8 @@ var addNewGroupMembers = function(){
      var length = lis.length;
      var membersUsernameArray = new Array();
      var usernameArray = new Array();
+     var ownerUsername = $('.login-user').text();
+	membersUsernameArray.push(ownerUsername);
      for(var i=0; i<length; i++){
      		var username = $(lis[i]).attr('id');
      		usernameArray.push(username);
@@ -2407,6 +2521,9 @@ var addNewGroupMembers = function(){
 				     		console.info('group members: '+IM.groups[curChatGroupId].membersUsername.join(','));
 					getAndRenderGroupMemberList(curChatGroupId);
 					$('#addNewGroupMemberModal').css({"display": "none"});
+					if($('.add-new-groupmember-decoration').css('display')=='block'){
+						$('.add-new-groupmember-decoration').css({"display":"none"});
+					}
 				},
 				fail: function(code, message){
 					showErrorInfo(code);
@@ -2417,31 +2534,34 @@ var addNewGroupMembers = function(){
      		} else {
      			usernameArray.push(curChatUserId);
      			membersUsernameArray.push(curChatUserId);
+     			var _groupName = membersUsernameArray.slice(0,2).join(',');
      			JMessage.createGroup({
-			  	groupName: 'Group-Chat',
+			  	groupName: '未命名',
 			  	groupDescription: '测试建群',
 			  	success: function(response) {
-			  	 	if(debug)
+			  		if(debug)
 			  	 		console.info('createGroup success: '+response);
 			  	 	var respData = JSON.parse(response);
 			  	 	var gid = respData.gid;
 			  	 	var name = respData.groupName;
-			  	 	var ownerUsername = $('.login-user').text();
-			  	 	membersUsernameArray.push(ownerUsername);
-			  	 	var groupObject = {
-			  	 		'gid': gid,
-			  	 		'ownerUsername': ownerUsername,
-			  	 		'groupName': name,
-			  	 		'groupDesc': '',
-			  	 		'membersUsername': membersUsernameArray
-			  	 	};
-			  	 	IM.groups[gid] = groupObject;
-					addGroupToList(gid, name);
+				  	var groupObject = {
+				  		'gid': gid,
+				  		'ownerUsername': ownerUsername,
+				  		'groupName': name,
+				  		'groupDesc': '',
+				  		'membersUsername': membersUsernameArray
+				  	};
+				  	IM.groups[gid] = groupObject;
+				  	if('未命名'==name){
+				  		addGroupToList(gid, _groupName);
+				  	} else {
+				  		addGroupToList(gid, name);
+				  	}
 			  	 	JMessage.addGroupMembers({
-						groupId: gid,
+						groupId: gid,          
 						memberUsernames: usernameArray,
 						success: function() {
-							if(debug)
+							if(debug)	
 								console.info('addGroupMember success');
 							addGroupToConversionList(gid, name);
 							$('li#conversion-'+gid).css({"border-left": "6px solid #4081df"});
@@ -2464,23 +2584,23 @@ var addNewGroupMembers = function(){
 							}
 							curChatGroupId = chatGroupId;
 							isSingleOrGroup = "group";
-							$('.'+talkToDiv).html(name);
-							$('#addNewGroupMemberModal').css({"display": "none"});
-							if($('#groupInfo').css('display')=='block'){
-								hideGroupInfoPanel();
-							}
+							$('.'+talkToDiv).html(_groupName);
+							$('#addNewGroupMemberModal').css({
+								"display": "none"
+							});
+							hideGroupInfoPanel();
 						},
 						fail: function(code, message){
 							showErrorInfo(code);
-							if(debug)	
-								console.error('addGroupMember fail, code: '+code+' ,message: '+message);
+							if(debug)
+								console.error('addGroupMember fail, code: '+code);
 						}
 					});
 			  	},
 			  	fail: function(code, message){
 			  		showErrorInfo(code);
 					if(debug)	
-						console.error('createGroup fail, code: '+code+' ,message: '+message);
+						console.error('createGroup fail, code: '+code);
 			  	}
 			});
      		}
@@ -2638,6 +2758,9 @@ var showErrorInfo = function(code){
 			break;
 		case 803005:
 			showMsg('您不在目标群组中');
+			break;
+		case 803007:
+			showMsg('消息长度超过限制');
 			break;
 		case 808001:
 			showMsg('群组名称为空');
